@@ -1,0 +1,7 @@
+#!/bin/bash
+
+sudo rm -r build
+sudo rm -r dist
+sudo rm -r LinkAna.egg-info
+sudo rm -r /usr/local/lib/python2.7/dist-packages/LinkAna-0.0.1-py2.7.egg/
+sudo python setup.py install
