@@ -4,8 +4,8 @@ from cap.template import SafeTester
 from cap.template import RiskyTester
 
 
-class SafeModelTester(SafeTester):
-    """ General template for safe "Model" modules testing """
+class SafePluginTester(SafeTester):
+    """ General template for safe "Plugin" modules testing """
 
     def __init__(self, test_name):
         SafeTester.__init__(self, test_name)
@@ -20,8 +20,8 @@ class SafeModelTester(SafeTester):
                                      self.test_class)
 
 
-class RiskyModelTester(RiskyTester):
-    """ General template for risky "Model" modules testing """
+class RiskyPluginTester(RiskyTester):
+    """ General template for risky "Plugin" modules testing """
 
     def __init__(self, test_name):
         RiskyTester.__init__(self, test_name)

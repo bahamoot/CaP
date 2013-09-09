@@ -5,11 +5,10 @@ import shutil
 import subprocess
 import inspect
 import gc
-import combivep.settings as cbv_const
 
 
-class LinkAnaBase(object):
-    """ LinkAna base class """
+class CaPBase(object):
+    """ CaP base class """
 
     def __init__(self):
         pass
@@ -52,22 +51,22 @@ class LinkAnaBase(object):
         return funcs[0].__name__ if funcs else None
 
 
-class Tester(unittest.TestCase, LinkAnaBase):
-    """ general LinkAna template for testing """
+class Tester(unittest.TestCase, CaPBase):
+    """ general CaP template for testing """
 
     individual_debug = False
 
     def __init__(self, test_name):
         unittest.TestCase.__init__(self, test_name)
-        LinkAnaBase.__init__(self)
+        CaPBase.__init__(self)
 
     def remove_dir(self, dir_name):
         self.assertTrue(dir_name, '"None" is not a valid directory')
-        LinkAnaBase.remove_dir(self, dir_name)
+        CaPBase.remove_dir(self, dir_name)
 
     def create_dir(self, dir_name):
         self.assertTrue(dir_name, '"None" is not a valid directory')
-        LinkAnaBase.create_dir(self, dir_name)
+        CaPBase.create_dir(self, dir_name)
 
     def empty_working_dir(self):
         if not self.individual_debug:
