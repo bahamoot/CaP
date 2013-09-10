@@ -1,5 +1,5 @@
 import os
-import cap.plugin.animal
+import cap.plugin.toy.animal
 from cap.model.test.template import SafeModelTester
 from cap.model.som import SOMBase
 from cap.model.som import SOM2D
@@ -124,13 +124,21 @@ class TestSOMBase(SafeModelTester):
         self.assertEqual(list(model.nbh_range()),
                          [3, 2, 1, 0],
                          'Invalid neighbor range')
+        model = SOMBase(20,
+                        map_size=20,
+                        max_nbh_size=3,
+                        nbh_step_size=0.7,
+                        )
+        self.assertEqual(map(lambda x: round(x, 1), list(model.nbh_range())),
+                         [3, 2.3, 1.6, 0.9, 0.2],
+                         'Invalid neighbor range')
 
     def test_train(self):
         """ to see if SOMBase can correctly train testing toy samples """
 
         self.init_test(self.current_func_name)
 
-        animals = cap.plugin.animal.load_animals()
+        animals = cap.plugin.toy.animal.load_animals()
         prop_size = len(animals[0].props)
         model = SOMBase(prop_size,
                         random_seed=TEST_SEED,
@@ -321,6 +329,9 @@ class TestSOM2D(SafeModelTester):
                          28,
                          'Incorrect number of neighborhoods')
         nbh_indices = list(model.nbhs(42, 4))
+        self.assertEqual(10 in nbh_indices,
+                         True,
+                         'Incorrect neighborhood')
         self.assertEqual(20 in nbh_indices,
                          True,
                          'Incorrect neighborhood')
@@ -333,8 +344,33 @@ class TestSOM2D(SafeModelTester):
         self.assertEqual(23 in nbh_indices,
                          False,
                          'Incorrect neighborhood')
+        self.assertEqual(46 in nbh_indices,
+                         True,
+                         'Incorrect neighborhood')
         self.assertEqual(len(nbh_indices),
                          42,
+                         'Incorrect number of neighborhoods')
+        nbh_indices = list(model.nbhs(42, 3.9))
+        self.assertEqual(10 in nbh_indices,
+                         False,
+                         'Incorrect neighborhood')
+        self.assertEqual(20 in nbh_indices,
+                         True,
+                         'Incorrect neighborhood')
+        self.assertEqual(21 in nbh_indices,
+                         False,
+                         'Incorrect neighborhood')
+        self.assertEqual(22 in nbh_indices,
+                         False,
+                         'Incorrect neighborhood')
+        self.assertEqual(23 in nbh_indices,
+                         False,
+                         'Incorrect neighborhood')
+        self.assertEqual(46 in nbh_indices,
+                         False,
+                         'Incorrect neighborhood')
+        self.assertEqual(len(nbh_indices),
+                         40,
                          'Incorrect number of neighborhoods')
         nbh_indices = list(model.nbhs(29, 1))
         self.assertEqual(28 in nbh_indices,

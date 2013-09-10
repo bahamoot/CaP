@@ -1,4 +1,5 @@
 import numpy as np
+import math
 from cap.template import CaPBase
 from cap.settings import DFLT_SEED
 from cap.settings import DFLT_MAP_SIZE
@@ -87,8 +88,10 @@ class SOMBase(CaPBase):
             yield i
 
     def nbh_range(self):
-        for i in xrange(self.max_nbh_size, -1, -self.nbh_step_size):
-            yield i
+        val = self.max_nbh_size
+        while val >= 0:
+            yield val
+            val -= self.nbh_step_size
 
     def train(self, samples):
         for nbh in self.nbh_range():
@@ -101,7 +104,7 @@ class SOMBase(CaPBase):
 
                 #update winner and neighbors
                 for i in self.nbhs(winner, nbh):
-                    self.weight_map[i] = diff[i] * self.__weight_step_size
+                    self.weight_map[i] += diff[i] * self.__weight_step_size
 
 
     def __compare(self, x, y):
@@ -172,10 +175,12 @@ class SOM2D(SOMBase):
     def nbhs(self, winner, nbh):
         row, col = self.to_grid(winner)
 #        print "winner row:", row, " col:", col
-        for i in xrange(row-nbh, row+nbh+1):
+        ceil_nbh = int(math.ceil(nbh))
+        #print "nbh:", nbh, "\tceil:", math.ceil(nbh), "\t2.3:", int(math.ceil(2.3))
+        for i in xrange(row-ceil_nbh, row+ceil_nbh+1):
             if (i<0) or (i >= self.map_rows):
                 continue
-            for j in xrange(col-nbh, col+nbh+1):
+            for j in xrange(col-ceil_nbh, col+ceil_nbh+1):
                 if (j<0) or (j >= self.map_cols):
                     continue
 #                print "i:", i, " j:", j, " dist:", (i-row)**2 + (j-col)**2, " idx:", self.from_grid(i, j)

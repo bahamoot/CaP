@@ -1,7 +1,7 @@
 import os
-import cap.plugin.animal
-from cap.plugin.test.template import SafePluginTester
-from cap.plugin.animal import Animal
+import cap.plugin.toy.animal
+from cap.plugin.toy.test.template import SafePluginTester
+#from cap.plugin.toy.animal import Animal
 from cap.settings import DFLT_SEED
 from cap.settings import TEST_SEED
 from cap.settings import DFLT_MAP_SIZE
@@ -22,7 +22,7 @@ class TestAnimal(SafePluginTester):
 
         self.init_test(self.current_func_name)
 
-        animals = cap.plugin.animal.load_animals()
+        animals = cap.plugin.toy.animal.load_animals()
 
         self.assertEqual(len(animals),
                          32,
