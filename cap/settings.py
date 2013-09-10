@@ -35,7 +35,10 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
 
 # > > > > > > > > > > > > > model parameters < < < < < < < < < <
 DFLT_MAP_SIZE = 4
-DFLT_STEP_SIZE = 0.2
+DFLT_WEIGHT_STEP_SIZE = 0.2
+DFLT_NBH_STEP_SIZE = 2
 DFLT_MAX_NBH_SIZE = 3
+DFLT_MAP_ROWS = 3
+DFLT_MAP_COLS = 5
 
 

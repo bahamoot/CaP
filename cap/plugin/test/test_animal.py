@@ -5,7 +5,7 @@ from cap.plugin.animal import Animal
 from cap.settings import DFLT_SEED
 from cap.settings import TEST_SEED
 from cap.settings import DFLT_MAP_SIZE
-from cap.settings import DFLT_STEP_SIZE
+from cap.settings import DFLT_WEIGHT_STEP_SIZE
 from cap.settings import DFLT_MAX_NBH_SIZE
 
 
