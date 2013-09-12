@@ -71,10 +71,6 @@ class SOMBase(CaPBase):
     def max_nbh_size(self):
         return self.__max_nbh_size
 
-#    @property
-#    def weight_map(self):
-#        return self.weight_map
-
     def calc_similarity(self, props):
         diff = props - self.weight_map
         dist = np.sum(diff*diff, axis=1)
@@ -95,16 +91,11 @@ class SOMBase(CaPBase):
 
     def train(self, samples):
         for nbh in self.nbh_range():
-#            print
-#            print "round:", nbh
-#            print 
             for sample in samples:
                 winner, diff = self.calc_similarity(sample.props)
-#                print "sample: ", sample.name, "\t, winner:", winner
-
                 #update winner and neighbors
                 for i in self.nbhs(winner, nbh):
-                    self.weight_map[i] += diff[i] * self.__weight_step_size
+                    self.weight_map[i] += diff[i] * self.weight_step_size
 
 
     def __compare(self, x, y):

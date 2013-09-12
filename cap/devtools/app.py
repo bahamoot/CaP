@@ -90,20 +90,6 @@ class SOM2DAnimal(SOM2D):
         ax.set_xlim([0, self.map_cols+1])
         ax.set_ylabel('some numbers')
         plt.show()
-#        out = []
-#        for i in xrange(self.map_rows):
-#            out_row = []
-#            for j in xrange(self.map_cols):
-#                out_row.append([])
-#            out.append(out_row)
-#
-#        for sample in samples:
-#            winner, diff = self.calc_similarity(sample.props)
-#            row, col = self.to_grid(winner)
-#            out[row][col].append(sample.name)
-#
-#        for row_items in out:
-#            line = " ".join(map(lambda x: self.to_str(x), row_items))
 
 
 def demo_toy_training():
@@ -111,34 +97,12 @@ def demo_toy_training():
     extra_animals = cap.plugin.toy.extra_animal.load_animals()
     prop_size = len(animals[0].props)
     model = SOM2DAnimal(prop_size,
-                        max_nbh_size=15,
-#                        random_seed=TEST_SEED,
-                        nbh_step_size=1,
+                        max_nbh_size=9,
+                        nbh_step_size=0.3,
                         map_rows=17,
                         map_cols=17,
                         )
     model.train(animals)
-#    for i in xrange(len(extra_animals)):
-#        if extra_animals[i].name == 'chicken':
-#            print i
+    print extra_animals[8].props
     model.visualize_terminal(animals, [extra_animals[8]])
     model.visualize_plt(animals, [extra_animals[8]], 29)
-    #for animal in animals:
-    #    if animal.props[29] != 0:
-    #        print animal.name
-    #print
-    #for animal in animals:
-    #    if animal.props[29] == 0:
-    #        print animal.name
-
-
-#def demo_toy_training():
-#    animals = cap.plugin.animal.load_animals()
-#    prop_size = len(animals[0].props)
-#    model = SOMBase(prop_size,
-#                    random_seed=TEST_SEED,
-#                    max_nbh_size=50,
-#                    map_size=100,
-#                    )
-#    model.train(animals)
-#    model.visualize(animals)

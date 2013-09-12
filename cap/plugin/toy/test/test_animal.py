@@ -1,7 +1,6 @@
 import os
 import cap.plugin.toy.animal
-from cap.plugin.toy.test.template import SafePluginTester
-#from cap.plugin.toy.animal import Animal
+from cap.plugin.toy.test.template import SafeToyTester
 from cap.settings import DFLT_SEED
 from cap.settings import TEST_SEED
 from cap.settings import DFLT_MAP_SIZE
@@ -9,10 +8,10 @@ from cap.settings import DFLT_WEIGHT_STEP_SIZE
 from cap.settings import DFLT_MAX_NBH_SIZE
 
 
-class TestAnimal(SafePluginTester):
+class TestAnimal(SafeToyTester):
 
     def __init__(self, test_name):
-        SafePluginTester.__init__(self, test_name)
+        SafeToyTester.__init__(self, test_name)
 
     def setUp(self):
         self.test_class = 'Animal'

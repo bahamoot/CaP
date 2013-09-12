@@ -329,7 +329,7 @@ class Animal(CaPBase):
         return self.__repr__()
 
     def __repr__(self):
-        return '<Animal Object> ' + str(self.get_raw_repr())
+        return '<' + self.__class__.__name__ + ' Object> ' + str(self.get_raw_repr())
 
     def get_raw_repr(self):
         return {'name': self.name,

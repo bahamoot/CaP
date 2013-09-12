@@ -153,7 +153,7 @@ class TestSOMBase(SafeModelTester):
                          'beetle',
                          'Invalid sample name')
         self.assertEqual(winner,
-                         85,
+                         95,
                          'Invalid winner node')
         test_sample = animals[12]
         winner, diff = model.calc_similarity(test_sample.props)
@@ -161,7 +161,7 @@ class TestSOMBase(SafeModelTester):
                          'elephant',
                          'Invalid sample name')
         self.assertEqual(winner,
-                         77,
+                         18,
                          'Invalid winner node')
 
 
