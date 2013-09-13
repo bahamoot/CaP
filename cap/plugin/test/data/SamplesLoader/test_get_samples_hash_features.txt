@@ -1,1 +1,1 @@
-master/test_samples_features.txt
+../../../../data/test_samples_features.txt

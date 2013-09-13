@@ -30,9 +30,9 @@ class TestSOMBase(SafeModelTester):
 
         self.init_test(self.current_func_name)
         model = SOMBase(5)
-        self.assertEqual(model.props_size,
+        self.assertEqual(model.features_size,
                          5,
-                         'Incorrect number of props')
+                         'Incorrect number of features')
         self.assertEqual(model.map_size,
                          DFLT_MAP_SIZE,
                          'Incorrect size of model mapping')
@@ -59,9 +59,9 @@ class TestSOMBase(SafeModelTester):
                         max_nbh_size=70,
                         random_seed=TEST_SEED
                         )
-        self.assertEqual(model.props_size,
+        self.assertEqual(model.features_size,
                          200,
-                         'Incorrect number of props')
+                         'Incorrect number of features')
         self.assertEqual(model.map_size,
                          100,
                          'Incorrect size of model mapping')
@@ -139,7 +139,7 @@ class TestSOMBase(SafeModelTester):
         self.init_test(self.current_func_name)
 
         animals = cap.plugin.toy.animal.load_animals()
-        prop_size = len(animals[0].props)
+        prop_size = len(animals[0].features)
         model = SOMBase(prop_size,
                         random_seed=TEST_SEED,
                         max_nbh_size=40,
@@ -148,7 +148,7 @@ class TestSOMBase(SafeModelTester):
                         )
         model.train(animals)
         test_sample = animals[4]
-        winner, diff = model.calc_similarity(test_sample.props)
+        winner, diff = model.calc_similarity(test_sample.features)
         self.assertEqual(test_sample.name,
                          'beetle',
                          'Invalid sample name')
@@ -156,7 +156,7 @@ class TestSOMBase(SafeModelTester):
                          95,
                          'Invalid winner node')
         test_sample = animals[12]
-        winner, diff = model.calc_similarity(test_sample.props)
+        winner, diff = model.calc_similarity(test_sample.features)
         self.assertEqual(test_sample.name,
                          'elephant',
                          'Invalid sample name')
@@ -178,9 +178,9 @@ class TestSOM2D(SafeModelTester):
 
         self.init_test(self.current_func_name)
         model = SOM2D(5)
-        self.assertEqual(model.props_size,
+        self.assertEqual(model.features_size,
                          5,
-                         'Incorrect number of props')
+                         'Incorrect number of features')
         self.assertEqual(model.map_size,
                          DFLT_MAP_ROWS*DFLT_MAP_COLS,
                          'Incorrect size of model mapping')

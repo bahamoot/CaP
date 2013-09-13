@@ -142,6 +142,5 @@ def load_samples(features_file=None,
 
     """
 
-    y = np.loadtxt(join_paradigm_result, dtype='str')
-    print y
-    return
+    sl = SamplesLoader(features_file, classes_file)
+    return sl.get_samples_list()

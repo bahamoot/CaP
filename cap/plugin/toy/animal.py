@@ -333,7 +333,7 @@ class Animal(CaPBase):
 
     def get_raw_repr(self):
         return {'name': self.name,
-                'props': self.props,
+                'features': self.features,
                 }
 
     @property
@@ -341,19 +341,19 @@ class Animal(CaPBase):
         return self.__name
 
     @property
-    def props(self):
-        return self.__props
+    def features(self):
+        return self.__features
 
-    @props.setter
-    def props(self, value):
-        self.__props = value
+    @features.setter
+    def features(self, value):
+        self.__features = value
 
 
 def load_animals():
     animals = []
     for animal_name in my_animals:
         animal = Animal(animal_name)
-        animal.props = my_props[animal_name]
+        animal.features = my_props[animal_name]
         animals.append(animal)
     return animals
 

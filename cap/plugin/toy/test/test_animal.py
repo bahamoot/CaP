@@ -26,6 +26,6 @@ class TestAnimal(SafeToyTester):
         self.assertEqual(len(animals),
                          32,
                          'Invalid number of animals')
-        self.assertEqual(len(animals[0].props),
+        self.assertEqual(len(animals[0].features),
                          84,
                          'Invalid number of animal properties')
