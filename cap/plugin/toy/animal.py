@@ -2,12 +2,10 @@ import numpy
 from cap.template import CaPBase
 
 
-# List of the animals species
 my_animals = ('antelop', 'ape', 'bat', 'bear', 'beetle', 'butterfly', 'camel', 'cat', 'crocodile', 'dog', 'dragonfly',
 	   'duck', 'elephant', 'frog', 'giraffe', 'grasshopper', 'horse', 'housefly', 'hyena', 'kangaroo', 'lion',
 	   'moskito', 'ostrich', 'pelican', 'penguin', 'pig', 'rabbit', 'rat', 'seaturtle', 'skunk', 'spider', 'walrus')
 
-# List of properties
 properties = ('antlered', 'articulations', 'barks', 'big', 'bigears', 'biting', 'black', 'blood', 'brown', 'climbing',
               'cns', 'coldblooded', 'curltail', 'digging', 'eatsanimals', 'eatsanything', 'eatscarrion', 'eatsfish',
               'eatsflies', 'eatsgarbage', 'eatsgrass', 'eggs', 'eightlegged', 'exoskeleton', 'extremelysmall', 'fatbody',
@@ -205,118 +203,6 @@ setProps('spider',
           'articulations', 'eggs', 'extremelysmall', 'wingless', 'pipetrakeas',
           'feelerless', 'eightlegged', 'fatbody', 'black'))
 
-## List of classes
-#categories = ('canfly', 'carnivore', 'dummy')
-#
-#catindex = {}
-#for j, q in enumerate(categories):
-#    catindex[q] = j
-#
-## Dictionary holding the category array for each animal
-#my_cats = {}
-#
-#def setCats(a, catList):
-#    print catindex
-#    indices = [catindex[q] for q in catList]
-#    v = numpy.zeros(len(categories))
-#    v[indices] = 1
-#    my_cats[a] = v
-#
-#setCats('bat',
-#         ('canfly', 'carnivore'))
-#
-#setCats('rat',
-##         ('canfly', 'carnivore'))
-#         ('carnivore'))
-#
-##setCats('rabbit',
-##         ())
-##
-##setCats('elephant',
-##         ())
-##
-##setCats('horse',
-##         ())
-##
-##setCats('antelop',
-##         ())
-##
-##setCats('giraffe',
-##         ())
-##
-##setCats('camel',
-##         ())
-##
-##setCats('pig',
-##         ())
-##
-##setCats('walrus',
-##         ())
-##
-##setCats('skunk',
-##         ())
-##
-##setCats('hyena',
-##         ('carnivore'))
-##
-##setCats('dog',
-##         ())
-##
-##setCats('bear',
-##         ())
-##
-##setCats('lion',
-##         ('carnivore'))
-##
-##setCats('cat',
-##         ('carnivore'))
-##
-##setCats('ape',
-##         ())
-##
-##setCats('kangaroo',
-##         ())
-##
-##setCats('duck',
-##         ('canfly', 'carnivore'))
-##
-##setCats('pelican',
-##         ('canfly', 'carnivore'))
-##
-##setCats('penguin',
-##         ())
-##setCats('ostrich',
-##         ())
-##
-##setCats('crocodile',
-##         ('carnivore'))
-##
-##setCats('seaturtle',
-##         ())
-##
-##setCats('frog',
-##         ())
-##
-##setCats('housefly',
-##         ('canfly'))
-##
-##setCats('moskito',
-##         ('canfly', 'carnivore'))
-##
-##setCats('butterfly',
-##         ('canfly'))
-##
-##setCats('beetle',
-##         ('canfly'))
-##
-##setCats('dragonfly',
-##         ('canfly'))
-##
-##setCats('grasshopper',
-##         ('canfly'))
-##
-##setCats('spider',
-##         ('canfly'))
 
 class Animal(CaPBase):
     """ to keep and manipulate animal information """
@@ -354,10 +240,10 @@ def load_animals():
     for animal_name in my_animals:
         animal = Animal(animal_name)
         animal.features = my_props[animal_name]
+        animal.classes = my_props[animal_name]
         animals.append(animal)
     return animals
 
 
 # Clean up things that should not be exported
 del numpy, setProps, propindex, i, p
-#del numpy, setProps, propindex, setCats, catindex, i, p, j, q

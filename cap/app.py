@@ -41,14 +41,13 @@ def SOM2D_training(training_features_file,
                   random_seed=random_seed,
                   )
     model.train(training_samples)
-#    print extra_animals[8].features
     model.visualize_terminal(training_samples)
     model.visualize_plt(training_samples,
                         class_name='tumor_stage',
                         class_plt_style={'Stage I': 'r^',
                                          'Stage IIA': 'b*',
                                          'Stage IIB': 'yD',
-                                         'Stage IIIA': 'kH',
+                                         'Stage IIIA': 'mH',
                                          'Stage IIIB': 'co',
                                          'Stage IIIC': 'gv',
                                          'Stage IV': 'mx',

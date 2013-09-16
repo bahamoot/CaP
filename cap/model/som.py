@@ -11,7 +11,8 @@ from cap.settings import DFLT_MAP_ROWS
 from cap.settings import DFLT_MAP_COLS
 
 
-DEFAULT_CLASS_STYLE = 'k+'
+DEFAULT_TRAINING_CLASS_STYLE = 'kp'
+DEFAULT_TEST_CLASS_STYLE = 'ki+'
 
 class SOMBase(CaPBase):
     """ to automatically parse VCF data"""
@@ -193,17 +194,19 @@ class SOM2D(SOMBase):
             for j in xrange(self.map_cols):
                 out_row.append([])
             out.append(out_row)
-
+        #create terminal matrix
         for sample in training_samples:
+            print sample
             winner, diff = self.calc_similarity(sample.features)
             row, col = self.to_grid(winner)
             out[row][col].append(sample.name)
         if test_samples is not None:
             for sample in test_samples:
+                print sample
                 winner, diff = self.calc_similarity(sample.features)
                 row, col = self.to_grid(winner)
                 out[row][col].append(sample.name)
-
+        #throw matrix to stdout
         for row_items in out:
             line = " ".join(map(lambda x: self.to_str(x), row_items))
             print line
@@ -216,21 +219,21 @@ class SOM2D(SOMBase):
                       ):
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1)
+        #plot training samples
         for sample in training_samples:
-            #print sample
             winner, diff = self.calc_similarity(sample.features)
             row, col = self.to_grid(winner)
             sample_class = sample.classes[class_name]
             if sample_class in class_plt_style:
                 ax.plot(col+1, self.map_rows-row, class_plt_style[sample_class])
             else:
-                ax.plot(col+1, self.map_rows-row, DEFAULT_CLASS_STYLE)
+                ax.plot(col+1, self.map_rows-row, DEFAULT_TRAINING_CLASS_STYLE)
+        #plot testing samples
         if test_samples is not None:
             for sample in test_samples:
                 winner, diff = self.calc_similarity(sample.features)
                 row, col = self.to_grid(winner)
-                ax.plot(col+1, self.map_rows-row, 'k+')
+                ax.plot(col+1, self.map_rows-row, DEFAULT_TEST_CLASS_STYLE)
         ax.set_ylim([0, self.map_rows+1])
         ax.set_xlim([0, self.map_cols+1])
-        ax.set_ylabel('some numbers')
         plt.show()

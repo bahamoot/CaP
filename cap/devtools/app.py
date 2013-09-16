@@ -51,58 +51,23 @@ class SOM2DAnimal(SOM2D):
         else:
             return fmt.format(', '.join(list_item))
 
-    def visualize_terminal(self, training_samples, test_samples):
-        out = []
-        for i in xrange(self.map_rows):
-            out_row = []
-            for j in xrange(self.map_cols):
-                out_row.append([])
-            out.append(out_row)
-
-        for sample in training_samples:
-            winner, diff = self.calc_similarity(sample.props)
-            row, col = self.to_grid(winner)
-            out[row][col].append(sample.name)
-        for sample in test_samples:
-            winner, diff = self.calc_similarity(sample.props)
-            row, col = self.to_grid(winner)
-            out[row][col].append(sample.name)
-
-        for row_items in out:
-            line = " ".join(map(lambda x: self.to_str(x), row_items))
-            print line
-
-    def visualize_plt(self, training_samples, test_samples, prop_idx):
-        fig = plt.figure()
-        ax = fig.add_subplot(1, 1, 1)
-        for sample in training_samples:
-            winner, diff = self.calc_similarity(sample.props)
-            row, col = self.to_grid(winner)
-            if sample.props[29] != 0:
-                ax.plot(col+1, self.map_rows-row, 'r*')
-            else:
-                ax.plot(col+1, self.map_rows-row, 'bo')
-        for sample in test_samples:
-            winner, diff = self.calc_similarity(sample.props)
-            row, col = self.to_grid(winner)
-            ax.plot(col+1, self.map_rows-row, 'k+')
-        ax.set_ylim([0, self.map_rows+1])
-        ax.set_xlim([0, self.map_cols+1])
-        ax.set_ylabel('some numbers')
-        plt.show()
-
 
 def demo_toy_training():
     animals = cap.plugin.toy.animal.load_animals()
     extra_animals = cap.plugin.toy.extra_animal.load_animals()
-    prop_size = len(animals[0].props)
-    model = SOM2DAnimal(prop_size,
+    features_size = len(animals[0].features)
+    model = SOM2DAnimal(features_size,
                         max_nbh_size=9,
                         nbh_step_size=0.3,
                         map_rows=17,
                         map_cols=17,
                         )
     model.train(animals)
-    print extra_animals[8].props
     model.visualize_terminal(animals, [extra_animals[8]])
-    model.visualize_plt(animals, [extra_animals[8]], 29)
+    model.visualize_plt(animals,
+                        29,
+                        class_plt_style={0: 'r^',
+                                         1: 'b*',
+                                         },
+                        test_samples=[extra_animals[8]],
+                        )
