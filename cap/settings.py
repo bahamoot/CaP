@@ -14,6 +14,10 @@ TEST_SEED = DEMO_SEED
 # > > > > > > > > > > > > > development files & folders < < < < < < < < < <
 PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
 
+OUT_DIR = '/home/jessada/development/scilifelab/projects/CaP/out/'
+FIGS_TMP_OUT_DIR = os.path.join(OUT_DIR, 'figs_tmp')
+TERM_TMP_OUT_DIR = os.path.join(OUT_DIR, 'term_tmp')
+
 # > > > > > > > > > > > > > model parameters < < < < < < < < < <
 DFLT_MAP_SIZE = 100
 DFLT_WEIGHT_STEP_SIZE = 0.2

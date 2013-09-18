@@ -29,6 +29,10 @@ class Sample(CaPBase):
     def name(self):
         return self.__name
 
+    @name.setter
+    def name(self, value):
+        self.__name = value
+
     @property
     def content(self):
         return self.__content

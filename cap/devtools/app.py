@@ -44,12 +44,12 @@ class SOM2DAnimal(SOM2D):
                 "random seed": self.random_seed,
                 }
 
-    def to_str(self, list_item):
-        fmt = '{:<11}'
-        if len(list_item) == 0:
-            return fmt.format('.')
-        else:
-            return fmt.format(', '.join(list_item))
+#    def to_str(self, list_item):
+#        fmt = '{:<11}'
+#        if len(list_item) == 0:
+#            return fmt.format('.')
+#        else:
+#            return fmt.format(', '.join(list_item))
 
 
 def demo_toy_training():
@@ -63,7 +63,7 @@ def demo_toy_training():
                         map_cols=17,
                         )
     model.train(animals)
-    model.visualize_terminal(animals, [extra_animals[8]])
+    model.visualize_terminal(animals, test_samples=[extra_animals[8]])
     model.visualize_plt(animals,
                         29,
                         class_plt_style={0: 'r^',
