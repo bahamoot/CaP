@@ -28,8 +28,7 @@ PARADIGM_NBH_STEP_SIZE = 10
 PARADIGM_MAX_NBH_SIZE = 8
 PARADIGM_MAP_ROWS = 10
 PARADIGM_MAP_COLS = 10
-PARADIGM_RANDOM_SEED = 156806204
-#PARADIGM_RANDOM_SEED = None
+PARADIGM_RANDOM_SEED = None
 
 def get_time_stamp():
     return datetime.datetime.now().strftime("%Y%m%d%H%M%S")
