@@ -39,7 +39,7 @@ class SOMBase(CaPBase):
         self.__max_nbh_size = max_nbh_size
         self.__random_seed = random_seed
         if self.random_seed is None:
-            self.__random_seed = randint(-sys.maxint-1, sys.maxint)
+            self.__random_seed = randint(1, sys.maxint)
         np.random.seed(self.random_seed)
         self.weight_map = np.random.rand(self.map_size, self.features_size)
 
@@ -195,12 +195,46 @@ class SOM2D(SOMBase):
         else:
             return fmt.format(', '.join(list_item))
 
+    def __get_grid_coord(self, features):
+        winner, diff = self.calc_similarity(features)
+        return self.to_grid(winner)
+
+    def __get_terminal_grid_coord(self, features):
+        return self.__get_grid_coord(features)
+
+    def __to_plt(self, row, col):
+        plt_row = self.map_rows - row
+        plt_col = col + 1
+        return plt_row, plt_col
+
+    def __get_plt_grid_coord(self, features):
+        row, col = self.__get_grid_coord(features)
+        return self.__to_plt(row, col)
+
+    def __calc_samples_coord(self,
+                             training_samples,
+                             test_samples=None,
+                             ):
+        for sample in training_samples:
+            if sample.term_coord is None:
+                row, col = self.__get_terminal_grid_coord(sample.features)
+                sample.set_term_coord(row=row, col=col)
+                plt_row, plt_col = self.__to_plt(row, col)
+                sample.set_plt_coord(row=plt_row, col=plt_col)
+        for sample in test_samples:
+            if sample.term_coord is None:
+                row, col = self.__get_terminal_grid_coord(sample.features)
+                sample.set_term_coord(row=row, col=col)
+                plt_row, plt_col = self.__to_plt(row, col)
+                sample.set_plt_coord(row=plt_row, col=plt_col)
+
     def visualize_terminal(self,
                            training_samples,
                            terminal_str_width=DFLT_TERMINAL_STR_WIDTH,
                            test_samples=None,
                            output_file=None,
                            ):
+        self.__calc_samples_coord(training_samples, test_samples)
         out = []
         for i in xrange(self.map_rows):
             out_row = []
@@ -209,14 +243,12 @@ class SOM2D(SOMBase):
             out.append(out_row)
         #create terminal matrix
         for sample in training_samples:
-            winner, diff = self.calc_similarity(sample.features)
-            row, col = self.to_grid(winner)
-            out[row][col].append(sample.name)
+            x, y = sample.term_coord
+            out[y][x].append(sample.name)
         if test_samples is not None:
             for sample in test_samples:
-                winner, diff = self.calc_similarity(sample.features)
-                row, col = self.to_grid(winner)
-                out[row][col].append(sample.name)
+                x, y = sample.term_coord
+                out[y][x].append(sample.name)
         #redirect stdout if output_file is presented
         if output_file is not None:
             sys.stdout = open(output_file, 'w')
@@ -239,40 +271,35 @@ class SOM2D(SOMBase):
                       test_samples=None,
                       figure_name=None,
                       ):
+        self.__calc_samples_coord(training_samples, test_samples)
         fig = plt.figure()
         gs = gridspec.GridSpec(1, 1)
         ax = fig.add_subplot(gs[0])
         #record training samples
-        x_coods = defaultdict(list)
-        y_coods = defaultdict(list)
+        x_coords = defaultdict(list)
+        y_coords = defaultdict(list)
         for sample in training_samples:
-            winner, diff = self.calc_similarity(sample.features)
-            row, col = self.to_grid(winner)
-            plt_col = col + 1
-            plt_row = self.map_rows - row
+            x, y = sample.plt_coord
             sample_class = sample.classes[group_criteria]
             if sample_class in class_plt_style:
-                x_coods[sample_class].append(plt_col)
-                y_coods[sample_class].append(plt_row)
+                x_coords[sample_class].append(x)
+                y_coords[sample_class].append(y)
             else:
-                x_coods['unknown'].append(plt_col)
-                y_coods['unknown'].append(plt_row)
+                x_coords['unknown'].append(x)
+                y_coords['unknown'].append(y)
         #record test samples
         if test_samples is not None:
             for sample in test_samples:
-                winner, diff = self.calc_similarity(sample.features)
-                row, col = self.to_grid(winner)
-                plt_col = col + 1
-                plt_row = self.map_rows - row
-                x_coods['test data'].append(plt_col)
-                y_coods['test data'].append(plt_row)
+                x, y = sample.plt_coord
+                x_coords['test data'].append(x)
+                y_coords['test data'].append(y)
         #plot samples
         class_plt_style['unknown'] = DFLT_TRAINING_CLASS_STYLE
         class_plt_style['test data'] = DFLT_TEST_CLASS_STYLE
         plots = OrderedDict()
-        for sample_class in sorted(x_coods.keys()):
-            p = ax.plot(x_coods[sample_class],
-                        y_coods[sample_class],
+        for sample_class in sorted(x_coords.keys()):
+            p = ax.plot(x_coords[sample_class],
+                        y_coords[sample_class],
                         class_plt_style[sample_class],
                         label = sample_class,
                         )

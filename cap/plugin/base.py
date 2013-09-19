@@ -1,6 +1,9 @@
 import numpy as np
 from cap.template import CaPBase
+from collections import namedtuple
 
+
+Coord = namedtuple('Coord', ['x', 'y'])
 
 class Sample(CaPBase):
     """ to keep and manipulate sample information """
@@ -11,6 +14,8 @@ class Sample(CaPBase):
         self.features = None
         self.classes = None
         self.content = None
+        self.__term_coord = None
+        self.__plt_coord = None
 
     def __str__(self):
         return self.__repr__()
@@ -23,7 +28,15 @@ class Sample(CaPBase):
                 'content': self.content,
                 'features': self.features,
                 'classes': self.classes,
+                'terminal coordinate': self.term_coord,
+                'plot coordinate': self.plt_coord,
                 }
+
+    def set_term_coord(self, row, col):
+        self.__term_coord = Coord(col, row)
+
+    def set_plt_coord(self, row, col):
+        self.__plt_coord = Coord(col, row)
 
     @property
     def name(self):
@@ -57,6 +70,14 @@ class Sample(CaPBase):
     @classes.setter
     def classes(self, value):
         self.__classes = value
+
+    @property
+    def term_coord(self):
+        return self.__term_coord
+
+    @property
+    def plt_coord(self):
+        return self.__plt_coord
 
 
 class SamplesLoader(CaPBase):
