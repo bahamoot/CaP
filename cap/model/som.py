@@ -13,6 +13,7 @@ from cap.settings import DFLT_MAP_ROWS
 from cap.settings import DFLT_MAP_COLS
 from collections import defaultdict
 from collections import OrderedDict
+from random import randint
 
 
 DFLT_TRAINING_CLASS_STYLE = 'kp'
@@ -37,8 +38,9 @@ class SOMBase(CaPBase):
         self.__nbh_step_size = nbh_step_size
         self.__max_nbh_size = max_nbh_size
         self.__random_seed = random_seed
-        if self.random_seed is not None:
-            np.random.seed(self.random_seed)
+        if self.random_seed is None:
+            self.__random_seed = randint(-sys.maxint-1, sys.maxint)
+        np.random.seed(self.random_seed)
         self.weight_map = np.random.rand(self.map_size, self.features_size)
 
     def __str__(self):
