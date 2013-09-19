@@ -1,6 +1,7 @@
 import numpy as np
 import math
 import sys
+import os
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from cap.template import CaPBase
@@ -232,7 +233,7 @@ class SOM2D(SOMBase):
                            training_samples,
                            terminal_str_width=DFLT_TERMINAL_STR_WIDTH,
                            test_samples=None,
-                           output_file=None,
+                           out_folder=None,
                            ):
         self.__calc_samples_coord(training_samples, test_samples)
         out = []
@@ -249,9 +250,14 @@ class SOM2D(SOMBase):
             for sample in test_samples:
                 x, y = sample.term_coord
                 out[y][x].append(sample.name)
-        #redirect stdout if output_file is presented
-        if output_file is not None:
-            sys.stdout = open(output_file, 'w')
+        #redirect stdout if output folder is presented
+        if out_folder is not None:
+            terminal_out = os.path.join(out_folder,
+                                        'terminal_out.txt')
+            sys.stdout = open(terminal_out,
+                              'w')
+        else:
+            terminal_out = None
         #throw matrix to stdout
         for row_items in out:
             line = " ".join(map(lambda x: self.to_str(x, terminal_str_width),
@@ -259,22 +265,21 @@ class SOM2D(SOMBase):
                                 ))
             print line
         #redirect stdout back to the normal one
-        if output_file is not None:
+        if out_folder is not None:
             sys.stdout.flush()
             sys.stdout = sys.__stdout__
-        return output_file
+        return terminal_out
 
     def visualize_plt(self,
                       training_samples,
                       group_criteria,
                       class_plt_style,
                       test_samples=None,
-                      figure_name=None,
+                      out_folder=None,
                       ):
         self.__calc_samples_coord(training_samples, test_samples)
         fig = plt.figure()
-        gs = gridspec.GridSpec(1, 1)
-        ax = fig.add_subplot(gs[0])
+        ax = fig.add_subplot(1,1,1)
         #record training samples
         x_coords = defaultdict(list)
         y_coords = defaultdict(list)
@@ -355,8 +360,11 @@ class SOM2D(SOMBase):
                 verticalalignment='top',
                 bbox=txt_props,
                 )
-        if figure_name is not None:
+        if out_folder is not None:
+            figure_name = os.path.join(out_folder,
+                                       'fig_'+group_criteria+'.eps')
             fig.savefig(figure_name, bbox_inches='tight', pad_inches=0.1)
         else:
+            figure_name = None
             plt.show()
         return figure_name

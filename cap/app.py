@@ -9,7 +9,6 @@ from cap.settings import DFLT_MAX_NBH_SIZE
 from cap.settings import DFLT_MAP_ROWS
 from cap.settings import DFLT_MAP_COLS
 from cap.settings import DFLT_SEED
-from cap.settings import PROJECT_ROOT
 from cap.settings import FIGS_TMP_OUT_DIR
 from cap.settings import TERM_TMP_OUT_DIR
 
@@ -23,6 +22,7 @@ DEMO_TEST_FEATURES = os.path.join(ROOT_DEMO_DATA,
                                   'demo_test_features.txt')
 DEMO_TEST_CLASSES = os.path.join(ROOT_DEMO_DATA,
                                  'demo_test_classes.txt')
+DEMO_OUT_DIR = '/home/jessada/development/scilifelab/projects/CaP/out/tmp/'
 PARADIGM_WEIGHT_STEP_SIZE = 0.2
 PARADIGM_NBH_STEP_SIZE = 10
 PARADIGM_MAX_NBH_SIZE = 8
@@ -45,7 +45,7 @@ def som2d_paradigm_msi_status():
                                           },
                          test_features_file=DEMO_TEST_FEATURES,
                          )
-    return out["figure name"]
+    return out
 
 #Run som2d using Paradigm configuration and using tumor stage as
 #classification criteria
@@ -71,22 +71,24 @@ def som2d_paradigm(training_features_file,
                    group_criteria,
                    class_plt_style={},
                    test_features_file=None,
-                   figure_name=None,
-                   terminal_file=None,
                    ):
     current_time = get_time_stamp()
-    figure_name = os.path.join(FIGS_TMP_OUT_DIR,
-                               'fig_'+group_criteria+'_'+current_time+'.eps',
-                               )
-    terminal_file = os.path.join(TERM_TMP_OUT_DIR,
-                                 'term_'+group_criteria+'_'+current_time+'.txt',
-                                 )
+    out_folder = os.path.join(DEMO_OUT_DIR,
+                              'Paradigm/'+current_time)
+    if not os.path.isdir(out_folder):
+        os.makedirs(out_folder)
+
+#    figure_name = os.path.join(FIGS_TMP_OUT_DIR,
+#                               'fig_'+group_criteria+'_'+current_time+'.eps',
+#                               )
+#    terminal_file = os.path.join(TERM_TMP_OUT_DIR,
+#                                 'term_'+group_criteria+'_'+current_time+'.txt',
+#                                 )
     return som2d(training_features_file,
                  training_classes_file,
                  group_criteria,
                  class_plt_style=class_plt_style,
-                 figure_name=figure_name,
-                 terminal_file=terminal_file,
+                 out_folder=out_folder,
                  test_features_file=test_features_file,
                  map_rows=PARADIGM_MAP_ROWS,
                  map_cols=PARADIGM_MAP_COLS,
@@ -102,8 +104,9 @@ def som2d(training_features_file,
           group_criteria,
           class_plt_style={},
           test_features_file=None,
-          figure_name=None,
-          terminal_file=None,
+          out_folder=None,
+          #figure_name=None,
+          #terminal_file=None,
           map_rows=DFLT_MAP_ROWS,
           map_cols=DFLT_MAP_COLS,
           weight_step_size=DFLT_WEIGHT_STEP_SIZE,
@@ -134,13 +137,15 @@ def som2d(training_features_file,
     model.train(training_samples)
     out_terminal = model.visualize_terminal(training_samples,
                                             terminal_str_width=15,
-                                            output_file=terminal_file,
+                                            out_folder=out_folder,
+                                            #output_file=terminal_file,
                                             test_samples=test_samples,
                                             )
     out_plt = model.visualize_plt(training_samples,
                                   group_criteria,
                                   class_plt_style,
-                                  figure_name=figure_name,
+                                  out_folder=out_folder,
+                                  #figure_name=figure_name,
                                   test_samples=test_samples,
                                   )
     return {"figure name": out_plt,
