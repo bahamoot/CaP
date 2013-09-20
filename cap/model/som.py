@@ -15,6 +15,7 @@ from cap.settings import DFLT_MAP_COLS
 from collections import defaultdict
 from collections import OrderedDict
 from random import randint
+from matplotlib.backends.backend_pdf import PdfPages
 
 
 DFLT_TRAINING_CLASS_STYLE = 'kp'
@@ -151,6 +152,7 @@ class SOM2D(SOMBase):
                          )
         self.__map_rows = map_rows
         self.__map_cols = map_cols
+        #self.__pdf_pages = None
 
     def get_raw_repr(self):
         return {"features size": self.features_size,
@@ -189,8 +191,8 @@ class SOM2D(SOMBase):
                     continue
                 yield self.from_grid(i, j)
 
-    def to_str(self, list_item, terminal_str_width):
-        fmt = '{:<' + str(terminal_str_width) + '}'
+    def to_str(self, list_item, txt_width):
+        fmt = '{:<' + str(txt_width) + '}'
         if len(list_item) == 0:
             return fmt.format('.')
         else:
@@ -231,9 +233,10 @@ class SOM2D(SOMBase):
 
     def visualize_terminal(self,
                            training_samples,
-                           terminal_str_width=DFLT_TERMINAL_STR_WIDTH,
+                           txt_width=DFLT_TERMINAL_STR_WIDTH,
                            test_samples=None,
                            out_folder=None,
+                           idx=None,
                            ):
         self.__calc_samples_coord(training_samples, test_samples)
         out = []
@@ -260,7 +263,7 @@ class SOM2D(SOMBase):
             terminal_out = None
         #throw matrix to stdout
         for row_items in out:
-            line = " ".join(map(lambda x: self.to_str(x, terminal_str_width),
+            line = " ".join(map(lambda x: self.to_str(x, txt_width),
                                 row_items
                                 ))
             print line
@@ -270,22 +273,60 @@ class SOM2D(SOMBase):
             sys.stdout = sys.__stdout__
         return terminal_out
 
+    def visualize_txt(self,
+                      ax,
+                      col1_txt_list,
+                      col2_txt_list,
+                      ):
+        ax.axis('off')
+        col1_rows = len(col1_txt_list)
+        col2_rows = len(col2_txt_list)
+        if col1_rows > col2_rows:
+            txt_rows = col1_rows
+        else:
+            txt_rows = col2_rows
+        plt_txt_fmt = "{col1_txt:<45}{col2_txt:>45}"
+        plt_txt = []
+        for i in xrange(txt_rows):
+            if i >= col1_rows:
+                col1_txt = ''
+            else:
+                col1_txt = col1_txt_list[i]
+            if i >= col2_rows:
+                col2_txt = ''
+            else:
+                col2_txt = col2_txt_list[i]
+            plt_txt.append(plt_txt_fmt.format(col1_txt=col1_txt,
+                                              col2_txt=col2_txt))
+        txt_props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+        ax.text(0.5,
+                1,
+                "\n".join(plt_txt),
+                transform=ax.transAxes,
+                family='monospace',
+                fontsize=10,
+                horizontalalignment='center',
+                verticalalignment='top',
+                bbox=txt_props,
+                )
+        return ax
+
     def visualize_plt(self,
+                      ax,
                       training_samples,
-                      group_criteria,
+                      group_name,
                       class_plt_style,
                       test_samples=None,
-                      out_folder=None,
+                      marker_size=3,
+                      legend_txt_size=6,
                       ):
         self.__calc_samples_coord(training_samples, test_samples)
-        fig = plt.figure()
-        ax = fig.add_subplot(1,1,1)
         #record training samples
         x_coords = defaultdict(list)
         y_coords = defaultdict(list)
         for sample in training_samples:
             x, y = sample.plt_coord
-            sample_class = sample.classes[group_criteria]
+            sample_class = sample.classes[group_name]
             if sample_class in class_plt_style:
                 x_coords[sample_class].append(x)
                 y_coords[sample_class].append(y)
@@ -306,65 +347,20 @@ class SOM2D(SOMBase):
             p = ax.plot(x_coords[sample_class],
                         y_coords[sample_class],
                         class_plt_style[sample_class],
-                        label = sample_class,
+                        label=sample_class,
+                        markersize=marker_size,
                         )
             plots[sample_class] = p
         ax.set_ylim([0, self.map_rows+1])
         ax.set_xlim([0, self.map_cols+1])
+        ax.set_title(group_name)
+        txt_props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
         ax.legend(map(lambda x: plots[x][0], plots),
                   plots,
-                  bbox_to_anchor=(0., 1.02, 1., .102),
-                  loc=3,
-                  mode="expand",
-                  ncol=2,
-                  borderaxespad=0.,
+                  bbox_to_anchor=(1., 1.02),
+                  loc=2,
+                  ncol=1,
+                  #borderaxespad=0.,
+                  prop={'size':legend_txt_size},
                   )
-        #add text to descript training attributes
-        training_samples_size = len(training_samples)
-        if test_samples is not None:
-            test_samples_size = len(test_samples)
-        else:
-            test_samples_size = 0
-        training_iterations = int(math.ceil(float(self.max_nbh_size)/self.nbh_step_size))
-        plt_txt_fmt = "{caption:<28}:{value:>15}"
-        plt_txt = []
-        plt_txt.append(plt_txt_fmt.format(caption="number of training samples",
-                                          value=training_samples_size))
-        plt_txt.append(plt_txt_fmt.format(caption="number of test samples",
-                                          value=test_samples_size))
-        plt_txt.append(plt_txt_fmt.format(caption="features size",
-                                          value=self.features_size))
-        plt_txt.append(plt_txt_fmt.format(caption="classification property",
-                                          value=group_criteria))
-        plt_txt.append(plt_txt_fmt.format(caption="training iterations",
-                                          value=training_iterations))
-        plt_txt.append('')
-        plt_txt.append('')
-        plt_txt.append(plt_txt_fmt.format(caption="map rows",
-                                          value=self.map_rows))
-        plt_txt.append(plt_txt_fmt.format(caption="map cols",
-                                          value=self.map_cols))
-        plt_txt.append(plt_txt_fmt.format(caption="max neighborhod size",
-                                          value=self.max_nbh_size))
-        plt_txt.append(plt_txt_fmt.format(caption="neighborhood step size",
-                                          value=self.nbh_step_size))
-        plt_txt.append(plt_txt_fmt.format(caption="random seed",
-                                          value=self.random_seed))
-        txt_props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-        ax.text(1.02,
-                0.99,
-                "\n".join(plt_txt),
-                transform=ax.transAxes,
-                family='monospace',
-                fontsize=10,
-                verticalalignment='top',
-                bbox=txt_props,
-                )
-        if out_folder is not None:
-            figure_name = os.path.join(out_folder,
-                                       'fig_'+group_criteria+'.eps')
-            fig.savefig(figure_name, bbox_inches='tight', pad_inches=0.1)
-        else:
-            figure_name = None
-            plt.show()
-        return figure_name
+        return ax

@@ -1,6 +1,9 @@
 import os
+import math
 import cap.plugin.base
+import matplotlib
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 import datetime
 from cap.model.som import SOM2D
 from cap.settings import DFLT_WEIGHT_STEP_SIZE
@@ -33,63 +36,53 @@ PARADIGM_RANDOM_SEED = None
 def get_time_stamp():
     return datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
-#Run som2d using Paradigm configuration and using MSI status as
-#classification criteria
-def som2d_paradigm_msi_status():
+#running demo version of SOM2D using Paradigm data
+def demo_som2d_paradigm():
+    visualize_params = []
+    visualize_params.append({'type': 'terminal',
+                             'txt_width': 15,
+                             })
+    visualize_params.append({'type': 'scatter',
+                             'group_name': 'MSI_status',
+                             'class_plt_style': {'MSI-H': 'r^',
+                                                 'MSI-L': 'b*',
+                                                 'MSS': 'mo',
+                                                 },
+                             })
+    visualize_params.append({'type': 'scatter',
+                             'group_name': 'tumor_stage',
+                             'class_plt_style': {'Stage I': 'r^',
+                                                 'Stage IIA': 'b*',
+                                                 'Stage IIB': 'yD',
+                                                 'Stage IIIA': 'mH',
+                                                 'Stage IIIB': 'co',
+                                                 'Stage IIIC': 'gv',
+                                                 'Stage IV': 'mx',
+                                                 },
+                             })
     out = som2d_paradigm(DEMO_TRAINING_FEATURES,
                          DEMO_TRAINING_CLASSES,
-                         'MSI_status',
-                         class_plt_style={'MSI-H': 'r^',
-                                          'MSI-L': 'b*',
-                                          'MSS': 'mo',
-                                          },
                          test_features_file=DEMO_TEST_FEATURES,
+                         visualize_params=visualize_params,
                          )
     return out
-
-#Run som2d using Paradigm configuration and using tumor stage as
-#classification criteria
-def som2d_paradigm_tumor_stage():
-    out = som2d_paradigm(DEMO_TRAINING_FEATURES,
-                         DEMO_TRAINING_CLASSES,
-                         'tumor_stage',
-                         class_plt_style={'Stage I': 'r^',
-                                          'Stage IIA': 'b*',
-                                          'Stage IIB': 'yD',
-                                          'Stage IIIA': 'mH',
-                                          'Stage IIIB': 'co',
-                                          'Stage IIIC': 'gv',
-                                          'Stage IV': 'mx',
-                                          },
-                         test_features_file=DEMO_TEST_FEATURES,
-                         )
-    return out["figure name"]
 
 #A wrapped layer to call som2d using Paradigm configuration
 def som2d_paradigm(training_features_file,
                    training_classes_file,
-                   group_criteria,
-                   class_plt_style={},
                    test_features_file=None,
+                   visualize_params=None,
                    ):
     current_time = get_time_stamp()
     out_folder = os.path.join(DEMO_OUT_DIR,
                               'Paradigm/'+current_time)
     if not os.path.isdir(out_folder):
         os.makedirs(out_folder)
-
-#    figure_name = os.path.join(FIGS_TMP_OUT_DIR,
-#                               'fig_'+group_criteria+'_'+current_time+'.eps',
-#                               )
-#    terminal_file = os.path.join(TERM_TMP_OUT_DIR,
-#                                 'term_'+group_criteria+'_'+current_time+'.txt',
-#                                 )
     return som2d(training_features_file,
                  training_classes_file,
-                 group_criteria,
-                 class_plt_style=class_plt_style,
-                 out_folder=out_folder,
                  test_features_file=test_features_file,
+                 visualize_params=visualize_params,
+                 out_folder=out_folder,
                  map_rows=PARADIGM_MAP_ROWS,
                  map_cols=PARADIGM_MAP_COLS,
                  weight_step_size=PARADIGM_WEIGHT_STEP_SIZE,
@@ -101,12 +94,9 @@ def som2d_paradigm(training_features_file,
 #wrap all require stuffs to run SOM2D
 def som2d(training_features_file,
           training_classes_file,
-          group_criteria,
-          class_plt_style={},
           test_features_file=None,
+          visualize_params=None,
           out_folder=None,
-          #figure_name=None,
-          #terminal_file=None,
           map_rows=DFLT_MAP_ROWS,
           map_cols=DFLT_MAP_COLS,
           weight_step_size=DFLT_WEIGHT_STEP_SIZE,
@@ -133,21 +123,77 @@ def som2d(training_features_file,
     #shorten training samples name
     for training_sample in training_samples:
         training_sample.name = training_sample.name.replace("TCGA-", "")
-    #train and visualize
+    #train
     model.train(training_samples)
-    out_terminal = model.visualize_terminal(training_samples,
-                                            terminal_str_width=15,
-                                            out_folder=out_folder,
-                                            #output_file=terminal_file,
-                                            test_samples=test_samples,
-                                            )
-    out_plt = model.visualize_plt(training_samples,
-                                  group_criteria,
-                                  class_plt_style,
-                                  out_folder=out_folder,
-                                  #figure_name=figure_name,
-                                  test_samples=test_samples,
-                                  )
-    return {"figure name": out_plt,
+
+    #generate summary pdf report
+    pdf_font = {'family' : 'monospace',
+            'size'   : 5}
+    matplotlib.rc('font', **pdf_font)
+    fig_rows = 2
+    fig_cols = 3
+    legend_width = 1
+    description_height = 1
+    fig_width = 2
+    fig_height = 2
+    plt_rows = fig_rows*fig_height + description_height
+    plt_cols = (fig_width+legend_width) * fig_cols
+    fig = plt.figure()
+    idx = 0
+    #plot figures
+    for params in visualize_params:
+        if params['type'] == 'terminal':
+            out_terminal = model.visualize_terminal(training_samples,
+                                                    txt_width=params['txt_width'],
+                                                    out_folder=out_folder,
+                                                    test_samples=test_samples,
+                                                    idx=idx,
+                                                    )
+        elif params['type'] == 'scatter':
+            fig_col = (idx%fig_cols) * (fig_width+legend_width)
+            fig_row = ((idx//fig_cols)*fig_height) + description_height
+            ax = plt.subplot2grid((plt_rows, plt_cols), (fig_row, fig_col), colspan=fig_width, rowspan=fig_height)
+            out_plt = model.visualize_plt(ax,
+                                          training_samples,
+                                          params['group_name'],
+                                          params['class_plt_style'],
+                                          test_samples=test_samples,
+                                          )
+        idx += 1
+    #plot training attributes
+    training_samples_size = len(training_samples)
+    if test_samples is not None:
+        test_samples_size = len(test_samples)
+    else:
+        test_samples_size = 0
+    training_iterations = int(math.ceil(float(model.max_nbh_size)/model.nbh_step_size))
+    samples_txt_fmt = "{caption:<28}:{value:>7}"
+    samples_txt = []
+    samples_txt.append(samples_txt_fmt.format(caption="number of training samples",
+                                              value=training_samples_size))
+    samples_txt.append(samples_txt_fmt.format(caption="number of test samples",
+                                              value=test_samples_size))
+    samples_txt.append(samples_txt_fmt.format(caption="features size",
+                                              value=model.features_size))
+    samples_txt.append(samples_txt_fmt.format(caption="training iterations",
+                                              value=training_iterations))
+    model_txt_fmt = "{caption:<24}:{value:>12}"
+    model_txt = []
+    model_txt.append(model_txt_fmt.format(caption="map rows",
+                                          value=model.map_rows))
+    model_txt.append(model_txt_fmt.format(caption="map cols",
+                                          value=model.map_cols))
+    model_txt.append(model_txt_fmt.format(caption="max neighborhod size",
+                                          value=model.max_nbh_size))
+    model_txt.append(model_txt_fmt.format(caption="neighborhood step size",
+                                          value=model.nbh_step_size))
+    model_txt.append(model_txt_fmt.format(caption="random seed",
+                                          value=model.random_seed))
+    ax = plt.subplot2grid((plt_rows, plt_cols), (0, 0), colspan=fig_cols*(fig_width+legend_width))
+    out_plt = model.visualize_txt(ax, samples_txt, model_txt)
+    plt.tight_layout()
+    summary_pdf_file_name = os.path.join(out_folder, 'summary.pdf')
+    fig.savefig(summary_pdf_file_name, bbox_inches='tight', pad_inches=0.1)
+    return {"summary file": summary_pdf_file_name,
             "terminal file": out_terminal,
             }
