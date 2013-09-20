@@ -231,48 +231,6 @@ class SOM2D(SOMBase):
                 plt_row, plt_col = self.__to_plt(row, col)
                 sample.set_plt_coord(row=plt_row, col=plt_col)
 
-    def visualize_terminal(self,
-                           training_samples,
-                           txt_width=DFLT_TERMINAL_STR_WIDTH,
-                           test_samples=None,
-                           out_folder=None,
-                           idx=None,
-                           ):
-        self.__calc_samples_coord(training_samples, test_samples)
-        out = []
-        for i in xrange(self.map_rows):
-            out_row = []
-            for j in xrange(self.map_cols):
-                out_row.append([])
-            out.append(out_row)
-        #create terminal matrix
-        for sample in training_samples:
-            x, y = sample.term_coord
-            out[y][x].append(sample.name)
-        if test_samples is not None:
-            for sample in test_samples:
-                x, y = sample.term_coord
-                out[y][x].append(sample.name)
-        #redirect stdout if output folder is presented
-        if out_folder is not None:
-            terminal_out = os.path.join(out_folder,
-                                        'terminal_out.txt')
-            sys.stdout = open(terminal_out,
-                              'w')
-        else:
-            terminal_out = None
-        #throw matrix to stdout
-        for row_items in out:
-            line = " ".join(map(lambda x: self.to_str(x, txt_width),
-                                row_items
-                                ))
-            print line
-        #redirect stdout back to the normal one
-        if out_folder is not None:
-            sys.stdout.flush()
-            sys.stdout = sys.__stdout__
-        return terminal_out
-
     def visualize_txt(self,
                       ax,
                       col1_txt_list,
@@ -311,6 +269,86 @@ class SOM2D(SOMBase):
                 )
         return ax
 
+    def visualize_terminal(self,
+                           training_samples,
+                           txt_width=DFLT_TERMINAL_STR_WIDTH,
+                           test_samples=None,
+                           out_folder=None,
+                           ):
+        self.__calc_samples_coord(training_samples, test_samples)
+        out = []
+        for i in xrange(self.map_rows):
+            out_row = []
+            for j in xrange(self.map_cols):
+                out_row.append([])
+            out.append(out_row)
+        #create terminal matrix
+        for sample in training_samples:
+            x, y = sample.term_coord
+            out[y][x].append(sample.name)
+        if test_samples is not None:
+            for sample in test_samples:
+                x, y = sample.term_coord
+                out[y][x].append(sample.name)
+        #redirect stdout if output folder is presented
+        if out_folder is not None:
+            terminal_out = os.path.join(out_folder,
+                                        'terminal_out.txt')
+            sys.stdout = open(terminal_out,
+                              'w')
+        else:
+            terminal_out = None
+        #throw matrix to stdout
+        for row_items in out:
+            line = " ".join(map(lambda x: self.to_str(x, txt_width),
+                                row_items
+                                ))
+            print line
+        #redirect stdout back to the normal one
+        if out_folder is not None:
+            sys.stdout.flush()
+            sys.stdout = sys.__stdout__
+        return terminal_out
+
+    def visualize_sample_name(self,
+                              ax,
+                              training_samples,
+                              test_samples=None,
+                              out_file_name=None,
+                              txt_size=6,
+                              ):
+        self.__calc_samples_coord(training_samples, test_samples)
+        out = []
+        for i in xrange(self.map_rows+1):
+            out_row = []
+            for j in xrange(self.map_cols+1):
+                out_row.append([])
+            out.append(out_row)
+        #create terminal matrix
+        for sample in training_samples:
+            x, y = sample.plt_coord
+            out[y][x].append(sample.name)
+        if test_samples is not None:
+            for sample in test_samples:
+                x, y = sample.plt_coord
+                out[y][x].append(sample.name)
+        #throw matrix to axes
+        bbox_props = dict(boxstyle="round", fc="w", ec="0.5", alpha=0.9, linewidth=0.1)
+        for y in xrange(len(out)):
+            for x in xrange(len(out[y])):
+                if len(out[y][x]) > 0:
+                    ax.text(x,
+                            y,
+                            ", ".join(out[y][x]),
+                            ha="center",
+                            va="center",
+                            size=2,
+                            bbox=bbox_props)
+        ax.set_xlim([0, self.map_cols+1])
+        ax.set_ylim([0, self.map_rows+1])
+        ax.set_title("samples name", fontsize=txt_size)
+        return ax
+
     def visualize_plt(self,
                       ax,
                       training_samples,
@@ -318,7 +356,7 @@ class SOM2D(SOMBase):
                       class_plt_style,
                       test_samples=None,
                       marker_size=3,
-                      legend_txt_size=6,
+                      txt_size=6,
                       ):
         self.__calc_samples_coord(training_samples, test_samples)
         #record training samples
@@ -353,14 +391,13 @@ class SOM2D(SOMBase):
             plots[sample_class] = p
         ax.set_ylim([0, self.map_rows+1])
         ax.set_xlim([0, self.map_cols+1])
-        ax.set_title(group_name, fontsize=legend_txt_size)
+        ax.set_title(group_name, fontsize=txt_size)
         txt_props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
         ax.legend(map(lambda x: plots[x][0], plots),
                   plots,
                   bbox_to_anchor=(1., 1.02),
                   loc=2,
                   ncol=1,
-                  #borderaxespad=0.,
-                  prop={'size':legend_txt_size},
+                  prop={'size':txt_size},
                   )
         return ax
