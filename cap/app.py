@@ -27,10 +27,10 @@ DEMO_TEST_CLASSES = os.path.join(ROOT_DEMO_DATA,
                                  'demo_test_classes.txt')
 DEMO_OUT_DIR = '/home/jessada/development/scilifelab/projects/CaP/out/tmp/'
 PARADIGM_WEIGHT_STEP_SIZE = 0.2
-PARADIGM_NBH_STEP_SIZE = 10
-PARADIGM_MAX_NBH_SIZE = 8
-PARADIGM_MAP_ROWS = 10
-PARADIGM_MAP_COLS = 10
+PARADIGM_NBH_STEP_SIZE = 18
+PARADIGM_MAX_NBH_SIZE = 15
+PARADIGM_MAP_ROWS = 20
+PARADIGM_MAP_COLS = 20
 PARADIGM_RANDOM_SEED = None
 
 def get_time_stamp():
@@ -128,7 +128,7 @@ def som2d(training_features_file,
 
     #generate summary pdf report
     pdf_font = {'family' : 'monospace',
-            'size'   : 5}
+                'size'   : 3}
     matplotlib.rc('font', **pdf_font)
     fig_rows = 2
     fig_cols = 3

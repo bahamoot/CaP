@@ -353,7 +353,7 @@ class SOM2D(SOMBase):
             plots[sample_class] = p
         ax.set_ylim([0, self.map_rows+1])
         ax.set_xlim([0, self.map_cols+1])
-        ax.set_title(group_name)
+        ax.set_title(group_name, fontsize=legend_txt_size)
         txt_props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
         ax.legend(map(lambda x: plots[x][0], plots),
                   plots,
