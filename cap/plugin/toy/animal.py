@@ -1,5 +1,6 @@
 import numpy
 from cap.template import CaPBase
+from collections import namedtuple
 
 
 my_animals = ('antelop', 'ape', 'bat', 'bear', 'beetle', 'butterfly', 'camel', 'cat', 'crocodile', 'dog', 'dragonfly',
@@ -204,12 +205,16 @@ setProps('spider',
           'feelerless', 'eightlegged', 'fatbody', 'black'))
 
 
+Coord = namedtuple('Coord', ['x', 'y'])
+
 class Animal(CaPBase):
     """ to keep and manipulate animal information """
 
     def __init__(self, name):
         CaPBase.__init__(self)
         self.__name = name
+        self.__term_coord = None
+        self.__plt_coord = None
 
     def __str__(self):
         return self.__repr__()
@@ -219,8 +224,16 @@ class Animal(CaPBase):
 
     def get_raw_repr(self):
         return {'name': self.name,
-                'features': self.features,
+        #        'features': self.features,
+                'terminal coordinate': self.term_coord,
+                'plot coordinate': self.plt_coord,
                 }
+
+    def set_term_coord(self, row, col):
+        self.__term_coord = Coord(col, row)
+
+    def set_plt_coord(self, row, col):
+        self.__plt_coord = Coord(col, row)
 
     @property
     def name(self):
@@ -233,6 +246,14 @@ class Animal(CaPBase):
     @features.setter
     def features(self, value):
         self.__features = value
+
+    @property
+    def term_coord(self):
+        return self.__term_coord
+
+    @property
+    def plt_coord(self):
+        return self.__plt_coord
 
 
 def load_animals():

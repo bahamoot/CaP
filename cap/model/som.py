@@ -1,6 +1,7 @@
 import numpy as np
 import math
 import sys
+import os
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from cap.template import CaPBase
@@ -14,6 +15,7 @@ from cap.settings import DFLT_MAP_COLS
 from collections import defaultdict
 from collections import OrderedDict
 from random import randint
+from matplotlib.backends.backend_pdf import PdfPages
 
 
 DFLT_TRAINING_CLASS_STYLE = 'kp'
@@ -39,7 +41,7 @@ class SOMBase(CaPBase):
         self.__max_nbh_size = max_nbh_size
         self.__random_seed = random_seed
         if self.random_seed is None:
-            self.__random_seed = randint(-sys.maxint-1, sys.maxint)
+            self.__random_seed = randint(1, sys.maxint)
         np.random.seed(self.random_seed)
         self.weight_map = np.random.rand(self.map_size, self.features_size)
 
@@ -150,6 +152,7 @@ class SOM2D(SOMBase):
                          )
         self.__map_rows = map_rows
         self.__map_cols = map_cols
+        #self.__pdf_pages = None
 
     def get_raw_repr(self):
         return {"features size": self.features_size,
@@ -188,19 +191,91 @@ class SOM2D(SOMBase):
                     continue
                 yield self.from_grid(i, j)
 
-    def to_str(self, list_item, terminal_str_width):
-        fmt = '{:<' + str(terminal_str_width) + '}'
+    def to_str(self, list_item, txt_width):
+        fmt = '{:<' + str(txt_width) + '}'
         if len(list_item) == 0:
             return fmt.format('.')
         else:
             return fmt.format(', '.join(list_item))
 
+    def __get_grid_coord(self, features):
+        winner, diff = self.calc_similarity(features)
+        return self.to_grid(winner)
+
+    def __get_terminal_grid_coord(self, features):
+        return self.__get_grid_coord(features)
+
+    def __to_plt(self, row, col):
+        plt_row = self.map_rows - row
+        plt_col = col + 1
+        return plt_row, plt_col
+
+    def __get_plt_grid_coord(self, features):
+        row, col = self.__get_grid_coord(features)
+        return self.__to_plt(row, col)
+
+    def __calc_samples_coord(self,
+                             training_samples,
+                             test_samples=None,
+                             ):
+        for sample in training_samples:
+            if sample.term_coord is None:
+                row, col = self.__get_terminal_grid_coord(sample.features)
+                sample.set_term_coord(row=row, col=col)
+                plt_row, plt_col = self.__to_plt(row, col)
+                sample.set_plt_coord(row=plt_row, col=plt_col)
+        for sample in test_samples:
+            if sample.term_coord is None:
+                row, col = self.__get_terminal_grid_coord(sample.features)
+                sample.set_term_coord(row=row, col=col)
+                plt_row, plt_col = self.__to_plt(row, col)
+                sample.set_plt_coord(row=plt_row, col=plt_col)
+
+    def visualize_txt(self,
+                      ax,
+                      col1_txt_list,
+                      col2_txt_list,
+                      ):
+        ax.axis('off')
+        col1_rows = len(col1_txt_list)
+        col2_rows = len(col2_txt_list)
+        if col1_rows > col2_rows:
+            txt_rows = col1_rows
+        else:
+            txt_rows = col2_rows
+        plt_txt_fmt = "{col1_txt:<45}{col2_txt:>45}"
+        plt_txt = []
+        for i in xrange(txt_rows):
+            if i >= col1_rows:
+                col1_txt = ''
+            else:
+                col1_txt = col1_txt_list[i]
+            if i >= col2_rows:
+                col2_txt = ''
+            else:
+                col2_txt = col2_txt_list[i]
+            plt_txt.append(plt_txt_fmt.format(col1_txt=col1_txt,
+                                              col2_txt=col2_txt))
+        txt_props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+        ax.text(0.5,
+                1,
+                "\n".join(plt_txt),
+                transform=ax.transAxes,
+                family='monospace',
+                fontsize=10,
+                horizontalalignment='center',
+                verticalalignment='top',
+                bbox=txt_props,
+                )
+        return ax
+
     def visualize_terminal(self,
                            training_samples,
-                           terminal_str_width=DFLT_TERMINAL_STR_WIDTH,
+                           txt_width=DFLT_TERMINAL_STR_WIDTH,
                            test_samples=None,
-                           output_file=None,
+                           out_folder=None,
                            ):
+        self.__calc_samples_coord(training_samples, test_samples)
         out = []
         for i in xrange(self.map_rows):
             out_row = []
@@ -209,127 +284,120 @@ class SOM2D(SOMBase):
             out.append(out_row)
         #create terminal matrix
         for sample in training_samples:
-            winner, diff = self.calc_similarity(sample.features)
-            row, col = self.to_grid(winner)
-            out[row][col].append(sample.name)
+            x, y = sample.term_coord
+            out[y][x].append(sample.name)
         if test_samples is not None:
             for sample in test_samples:
-                winner, diff = self.calc_similarity(sample.features)
-                row, col = self.to_grid(winner)
-                out[row][col].append(sample.name)
-        #redirect stdout if output_file is presented
-        if output_file is not None:
-            sys.stdout = open(output_file, 'w')
+                x, y = sample.term_coord
+                out[y][x].append(sample.name)
+        #redirect stdout if output folder is presented
+        if out_folder is not None:
+            terminal_out = os.path.join(out_folder,
+                                        'terminal_out.txt')
+            sys.stdout = open(terminal_out,
+                              'w')
+        else:
+            terminal_out = None
         #throw matrix to stdout
         for row_items in out:
-            line = " ".join(map(lambda x: self.to_str(x, terminal_str_width),
+            line = " ".join(map(lambda x: self.to_str(x, txt_width),
                                 row_items
                                 ))
             print line
         #redirect stdout back to the normal one
-        if output_file is not None:
+        if out_folder is not None:
             sys.stdout.flush()
             sys.stdout = sys.__stdout__
-        return output_file
+        return terminal_out
+
+    def visualize_sample_name(self,
+                              ax,
+                              training_samples,
+                              test_samples=None,
+                              out_file_name=None,
+                              txt_size=6,
+                              ):
+        self.__calc_samples_coord(training_samples, test_samples)
+        out = []
+        for i in xrange(self.map_rows+1):
+            out_row = []
+            for j in xrange(self.map_cols+1):
+                out_row.append([])
+            out.append(out_row)
+        #create terminal matrix
+        for sample in training_samples:
+            x, y = sample.plt_coord
+            out[y][x].append(sample.name)
+        if test_samples is not None:
+            for sample in test_samples:
+                x, y = sample.plt_coord
+                out[y][x].append(sample.name)
+        #throw matrix to axes
+        bbox_props = dict(boxstyle="round", fc="w", ec="0.5", alpha=0.9, linewidth=0.1)
+        for y in xrange(len(out)):
+            for x in xrange(len(out[y])):
+                if len(out[y][x]) > 0:
+                    ax.text(x,
+                            y,
+                            ", ".join(out[y][x]),
+                            ha="center",
+                            va="center",
+                            size=2,
+                            bbox=bbox_props)
+        ax.set_xlim([0, self.map_cols+1])
+        ax.set_ylim([0, self.map_rows+1])
+        ax.set_title("samples name", fontsize=txt_size)
+        return ax
 
     def visualize_plt(self,
+                      ax,
                       training_samples,
-                      group_criteria,
+                      group_name,
                       class_plt_style,
                       test_samples=None,
-                      figure_name=None,
+                      marker_size=3,
+                      txt_size=6,
                       ):
-        fig = plt.figure()
-        gs = gridspec.GridSpec(1, 1)
-        ax = fig.add_subplot(gs[0])
+        self.__calc_samples_coord(training_samples, test_samples)
         #record training samples
-        x_coods = defaultdict(list)
-        y_coods = defaultdict(list)
+        x_coords = defaultdict(list)
+        y_coords = defaultdict(list)
         for sample in training_samples:
-            winner, diff = self.calc_similarity(sample.features)
-            row, col = self.to_grid(winner)
-            plt_col = col + 1
-            plt_row = self.map_rows - row
-            sample_class = sample.classes[group_criteria]
+            x, y = sample.plt_coord
+            sample_class = sample.classes[group_name]
             if sample_class in class_plt_style:
-                x_coods[sample_class].append(plt_col)
-                y_coods[sample_class].append(plt_row)
+                x_coords[sample_class].append(x)
+                y_coords[sample_class].append(y)
             else:
-                x_coods['unknown'].append(plt_col)
-                y_coods['unknown'].append(plt_row)
+                x_coords['unknown'].append(x)
+                y_coords['unknown'].append(y)
         #record test samples
         if test_samples is not None:
             for sample in test_samples:
-                winner, diff = self.calc_similarity(sample.features)
-                row, col = self.to_grid(winner)
-                plt_col = col + 1
-                plt_row = self.map_rows - row
-                x_coods['test data'].append(plt_col)
-                y_coods['test data'].append(plt_row)
+                x, y = sample.plt_coord
+                x_coords['test data'].append(x)
+                y_coords['test data'].append(y)
         #plot samples
         class_plt_style['unknown'] = DFLT_TRAINING_CLASS_STYLE
         class_plt_style['test data'] = DFLT_TEST_CLASS_STYLE
         plots = OrderedDict()
-        for sample_class in sorted(x_coods.keys()):
-            p = ax.plot(x_coods[sample_class],
-                        y_coods[sample_class],
+        for sample_class in sorted(x_coords.keys()):
+            p = ax.plot(x_coords[sample_class],
+                        y_coords[sample_class],
                         class_plt_style[sample_class],
-                        label = sample_class,
+                        label=sample_class,
+                        markersize=marker_size,
                         )
             plots[sample_class] = p
         ax.set_ylim([0, self.map_rows+1])
         ax.set_xlim([0, self.map_cols+1])
+        ax.set_title(group_name, fontsize=txt_size)
+        txt_props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
         ax.legend(map(lambda x: plots[x][0], plots),
                   plots,
-                  bbox_to_anchor=(0., 1.02, 1., .102),
-                  loc=3,
-                  mode="expand",
-                  ncol=2,
-                  borderaxespad=0.,
+                  bbox_to_anchor=(1., 1.02),
+                  loc=2,
+                  ncol=1,
+                  prop={'size':txt_size},
                   )
-        #add text to descript training attributes
-        training_samples_size = len(training_samples)
-        if test_samples is not None:
-            test_samples_size = len(test_samples)
-        else:
-            test_samples_size = 0
-        training_iterations = int(math.ceil(float(self.max_nbh_size)/self.nbh_step_size))
-        plt_txt_fmt = "{caption:<28}:{value:>15}"
-        plt_txt = []
-        plt_txt.append(plt_txt_fmt.format(caption="number of training samples",
-                                          value=training_samples_size))
-        plt_txt.append(plt_txt_fmt.format(caption="number of test samples",
-                                          value=test_samples_size))
-        plt_txt.append(plt_txt_fmt.format(caption="features size",
-                                          value=self.features_size))
-        plt_txt.append(plt_txt_fmt.format(caption="classification property",
-                                          value=group_criteria))
-        plt_txt.append(plt_txt_fmt.format(caption="training iterations",
-                                          value=training_iterations))
-        plt_txt.append('')
-        plt_txt.append('')
-        plt_txt.append(plt_txt_fmt.format(caption="map rows",
-                                          value=self.map_rows))
-        plt_txt.append(plt_txt_fmt.format(caption="map cols",
-                                          value=self.map_cols))
-        plt_txt.append(plt_txt_fmt.format(caption="max neighborhod size",
-                                          value=self.max_nbh_size))
-        plt_txt.append(plt_txt_fmt.format(caption="neighborhood step size",
-                                          value=self.nbh_step_size))
-        plt_txt.append(plt_txt_fmt.format(caption="random seed",
-                                          value=self.random_seed))
-        txt_props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-        ax.text(1.02,
-                0.99,
-                "\n".join(plt_txt),
-                transform=ax.transAxes,
-                family='monospace',
-                fontsize=10,
-                verticalalignment='top',
-                bbox=txt_props,
-                )
-        if figure_name is not None:
-            fig.savefig(figure_name, bbox_inches='tight', pad_inches=0.1)
-        else:
-            plt.show()
-        return figure_name
+        return ax

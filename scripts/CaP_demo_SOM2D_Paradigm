@@ -1,0 +1,7 @@
+import subprocess
+from cap.app import demo_som2d_paradigm
+
+
+out = demo_som2d_paradigm()
+p = subprocess.Popen('cat ' + out["terminal file"], shell=True)
+p = subprocess.Popen('evince ' + out["summary file"], shell=True)

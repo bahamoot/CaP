@@ -1,6 +1,6 @@
 import numpy
 from cap.template import CaPBase
-
+from cap.plugin.toy.animal import Animal
 
 my_animals = ('antelop', 'ape', 'bat', 'bear', 'beetle', 'butterfly', 'camel', 'cat', 'chicken', 'crocodile', 'dog', 'dragonfly',
 	   'duck', 'elephant', 'frog', 'giraffe', 'grasshopper', 'horse', 'housefly', 'hyena', 'kangaroo', 'lion',
@@ -209,35 +209,35 @@ setProps('spider',
           'feelerless', 'eightlegged', 'fatbody', 'black'))
 
 
-class Animal(CaPBase):
-    """ to keep and manipulate animal information """
-
-    def __init__(self, name):
-        CaPBase.__init__(self)
-        self.__name = name
-
-    def __str__(self):
-        return self.__repr__()
-
-    def __repr__(self):
-        return '<' + self.__class__.__name__ + ' Object> ' + str(self.get_raw_repr())
-
-    def get_raw_repr(self):
-        return {'name': self.name,
-                'features': self.features,
-                }
-
-    @property
-    def name(self):
-        return self.__name
-
-    @property
-    def features(self):
-        return self.__features
-
-    @features.setter
-    def features(self, value):
-        self.__features = value
+#class Animal(CaPBase):
+#    """ to keep and manipulate animal information """
+#
+#    def __init__(self, name):
+#        CaPBase.__init__(self)
+#        self.__name = name
+#
+#    def __str__(self):
+#        return self.__repr__()
+#
+#    def __repr__(self):
+#        return '<' + self.__class__.__name__ + ' Object> ' + str(self.get_raw_repr())
+#
+#    def get_raw_repr(self):
+#        return {'name': self.name,
+#                'features': self.features,
+#                }
+#
+#    @property
+#    def name(self):
+#        return self.__name
+#
+#    @property
+#    def features(self):
+#        return self.__features
+#
+#    @features.setter
+#    def features(self, value):
+#        self.__features = value
 
 
 def load_animals():

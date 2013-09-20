@@ -1,0 +1,6 @@
+from cap.devtools.app import demo_toy_training
+
+demo_toy_training()
+
+
+
