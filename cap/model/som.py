@@ -196,7 +196,7 @@ class SOM2D(SOMBase):
         if len(list_item) == 0:
             return fmt.format('.')
         else:
-            return fmt.format(', '.join(list_item))
+            return fmt.format(', '.join(map(lambda x: x.name, list_item)))
 
     def __get_grid_coord(self, features):
         winner, diff = self.calc_similarity(features)
@@ -230,6 +230,33 @@ class SOM2D(SOMBase):
                 sample.set_term_coord(row=row, col=col)
                 plt_row, plt_col = self.__to_plt(row, col)
                 sample.set_plt_coord(row=plt_row, col=plt_col)
+
+    def __generate_samples_matrix(self,
+                                  training_samples,
+                                  test_samples=None,
+                                  ):
+        self.__sm = []
+        for i in xrange(self.map_rows+1):
+            samples_row = []
+            for j in xrange(self.map_cols+1):
+                samples_row.append([])
+            self.__sm.append(samples_row)
+        #add samples to matrix
+        for sample in training_samples:
+            x, y = sample.plt_coord
+            self.__sm[y][x].append(sample)
+        if test_samples is not None:
+            for sample in test_samples:
+                x, y = sample.plt_coord
+                self.__sm[y][x].append(sample)
+
+
+    def load_visualize_samples(self,
+                               training_samples,
+                               test_samples=None,
+                               ):
+        self.__calc_samples_coord(training_samples, test_samples)
+        self.__generate_samples_matrix(training_samples, test_samples)
 
     def visualize_txt(self,
                       ax,
@@ -270,26 +297,9 @@ class SOM2D(SOMBase):
         return ax
 
     def visualize_terminal(self,
-                           training_samples,
                            txt_width=DFLT_TERMINAL_STR_WIDTH,
-                           test_samples=None,
                            out_folder=None,
                            ):
-        self.__calc_samples_coord(training_samples, test_samples)
-        out = []
-        for i in xrange(self.map_rows):
-            out_row = []
-            for j in xrange(self.map_cols):
-                out_row.append([])
-            out.append(out_row)
-        #create terminal matrix
-        for sample in training_samples:
-            x, y = sample.term_coord
-            out[y][x].append(sample.name)
-        if test_samples is not None:
-            for sample in test_samples:
-                x, y = sample.term_coord
-                out[y][x].append(sample.name)
         #redirect stdout if output folder is presented
         if out_folder is not None:
             terminal_out = os.path.join(out_folder,
@@ -299,9 +309,9 @@ class SOM2D(SOMBase):
         else:
             terminal_out = None
         #throw matrix to stdout
-        for row_items in out:
+        for row_items in self.__sm[1:len(self.__sm)]:
             line = " ".join(map(lambda x: self.to_str(x, txt_width),
-                                row_items
+                                row_items[1:len(row_items)]
                                 ))
             print line
         #redirect stdout back to the normal one
@@ -312,34 +322,17 @@ class SOM2D(SOMBase):
 
     def visualize_sample_name(self,
                               ax,
-                              training_samples,
-                              test_samples=None,
                               out_file_name=None,
                               txt_size=6,
                               ):
-        self.__calc_samples_coord(training_samples, test_samples)
-        out = []
-        for i in xrange(self.map_rows+1):
-            out_row = []
-            for j in xrange(self.map_cols+1):
-                out_row.append([])
-            out.append(out_row)
-        #create terminal matrix
-        for sample in training_samples:
-            x, y = sample.plt_coord
-            out[y][x].append(sample.name)
-        if test_samples is not None:
-            for sample in test_samples:
-                x, y = sample.plt_coord
-                out[y][x].append(sample.name)
-        #throw matrix to axes
+        sm = self.__sm
         bbox_props = dict(boxstyle="round", fc="w", ec="0.5", alpha=0.9, linewidth=0.1)
-        for y in xrange(len(out)):
-            for x in xrange(len(out[y])):
-                if len(out[y][x]) > 0:
+        for y in xrange(len(sm)):
+            for x in xrange(len(sm[y])):
+                if len(sm[y][x]) > 0:
                     ax.text(x,
                             y,
-                            ", ".join(out[y][x]),
+                            ", ".join(map(lambda x: x.name, sm[y][x])),
                             ha="center",
                             va="center",
                             size=2,

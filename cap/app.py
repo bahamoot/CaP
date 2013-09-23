@@ -151,8 +151,9 @@ def som2d(training_features_file,
     #shorten training samples name
     for training_sample in training_samples:
         training_sample.name = training_sample.name.replace("TCGA-", "")
-    #train
+    #train and load sample for visualize
     model.train(training_samples)
+    model.load_visualize_samples(training_samples, test_samples)
 
     #generate summary pdf report
     pdf_font = {'family' : 'monospace',
@@ -174,15 +175,10 @@ def som2d(training_features_file,
             fig_col = (idx%fig_cols) * (fig_width+legend_width)
             fig_row = ((idx//fig_cols)*fig_height) + description_height
             ax = plt.subplot2grid((plt_rows, plt_cols), (fig_row, fig_col), colspan=fig_width, rowspan=fig_height)
-            out_terminal = model.visualize_terminal(training_samples,
-                                                    txt_width=params['txt_width'],
+            out_terminal = model.visualize_terminal(txt_width=params['txt_width'],
                                                     out_folder=out_folder,
-                                                    test_samples=test_samples,
                                                     )
-            model.visualize_sample_name(ax,
-                                        training_samples,
-                                        test_samples=test_samples,
-                                        )
+            model.visualize_sample_name(ax)
         elif params['type'] == 'scatter':
             fig_col = (idx%fig_cols) * (fig_width+legend_width)
             fig_row = ((idx//fig_cols)*fig_height) + description_height
