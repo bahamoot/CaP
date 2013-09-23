@@ -80,14 +80,14 @@ def demo_som2d_paradigm():
                                                  'Transverse Colon': 'bp',
                                                  },
                              })
-    visualize_params.append({'type': 'scatter',
-                             'group_name': 'tumor_site',
-                             'class_plt_style': {'1 - right colon': 'r^',
-                                                 '2 - transverse colon': 'b*',
-                                                 '3 - left colon': 'gv',
-                                                 '4 - rectum': 'mo',
-                                                 },
-                             })
+#    visualize_params.append({'type': 'scatter',
+#                             'group_name': 'tumor_site',
+#                             'class_plt_style': {'1 - right colon': 'r^',
+#                                                 '2 - transverse colon': 'b*',
+#                                                 '3 - left colon': 'gv',
+#                                                 '4 - rectum': 'mo',
+#                                                 },
+#                             })
     out = som2d_paradigm(DEMO_TRAINING_FEATURES,
                          DEMO_TRAINING_CLASSES,
                          test_features_file=DEMO_TEST_FEATURES,

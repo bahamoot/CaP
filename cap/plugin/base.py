@@ -5,10 +5,13 @@ from collections import namedtuple
 
 Coord = namedtuple('Coord', ['x', 'y'])
 
+TYPE_TRAINING_SAMPLE = 'training'
+TYPE_TEST_SAMPLE = 'test'
+
 class Sample(CaPBase):
     """ to keep and manipulate sample information """
 
-    def __init__(self, name):
+    def __init__(self, name, sample_type=TYPE_TRAINING_SAMPLE):
         CaPBase.__init__(self)
         self.__name = name
         self.features = None
@@ -16,6 +19,7 @@ class Sample(CaPBase):
         self.content = None
         self.__term_coord = None
         self.__plt_coord = None
+        self.__sample_type = sample_type
 
     def __str__(self):
         return self.__repr__()
@@ -28,6 +32,7 @@ class Sample(CaPBase):
                 'content': self.content,
                 'features': self.features,
                 'classes': self.classes,
+                'sample type': self.sample_type,
                 'terminal coordinate': self.term_coord,
                 'plot coordinate': self.plt_coord,
                 }
@@ -72,6 +77,10 @@ class Sample(CaPBase):
         self.__classes = value
 
     @property
+    def sample_type(self):
+        return self.__sample_type
+
+    @property
     def term_coord(self):
         return self.__term_coord
 
@@ -84,13 +93,15 @@ class SamplesLoader(CaPBase):
     """ to load samples and convert them into the format ready for training """
 
     def __init__(self,
-                 features_file=None,
+                 features_file,
                  classes_file=None,
+                 samples_type=TYPE_TRAINING_SAMPLE,
                  ):
         CaPBase.__init__(self)
         self.__features_file = features_file
         self.__classes_file = classes_file
         self.__samples = None
+        self.__samples_type = samples_type
 
     def __str__(self):
         return self.__repr__()
@@ -99,8 +110,9 @@ class SamplesLoader(CaPBase):
         return '<' + self.__class__.__name__ + ' Object> ' + str(self.get_raw_repr())
 
     def get_raw_repr(self):
-        return {'features_file': self.__features_file,
-                'classes_file': self.__classes_file,
+        return {'features file': self.__features_file,
+                'classes file': self.__classes_file,
+                'samples type': self.__samples_type,
                 }
 
     def __process_samples_file(self, samples_file):
@@ -109,7 +121,7 @@ class SamplesLoader(CaPBase):
         records = samples_matrix[1:len(samples_matrix)]
         samples = {}
         for record in records:
-            sample = Sample(record[0])
+            sample = Sample(record[0], sample_type=self.__samples_type)
             sample.content = record[1:len(record)]
             samples[sample.name] = sample
         return header, samples

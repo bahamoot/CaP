@@ -349,6 +349,80 @@ class SOM2D(SOMBase):
         ax.set_title("samples name", fontsize=txt_size)
         return ax
 
+    def visualize_new_plt(self,
+                          ax,
+                          training_samples,
+                          group_name,
+                          class_plt_style,
+                          test_samples=None,
+                          marker_size=3,
+                          txt_size=6,
+                          ):
+        self.__calc_samples_coord(training_samples, test_samples)
+        samples_count = []
+        for i in xrange(self.map_rows+1):
+            samples_row = []
+            for j in xrange(self.map_cols+1):
+                samples_row.append([])
+            samples_count.append(samples_row)
+        #create frequency matrix
+        for sample in training_samples:
+            x, y = sample.plt_coord
+            samples_count[y][x].append(sample)
+        if test_samples is not None:
+            for sample in test_samples:
+                x, y = sample.plt_coord
+                samples_count[y][x]['test data'] += 1
+
+        for y in len(xrange(samples_count)):
+            for x in len(xrange(samples_count[y])):
+                for sample_group in samples_count[y][x]:
+                    pass
+
+
+        #record training samples
+        x_coords = defaultdict(list)
+        y_coords = defaultdict(list)
+        for sample in training_samples:
+            x, y = sample.plt_coord
+            sample_class = sample.classes[group_name]
+            if sample_class in class_plt_style:
+                x_coords[sample_class].append(x)
+                y_coords[sample_class].append(y)
+            else:
+                x_coords['unknown'].append(x)
+                y_coords['unknown'].append(y)
+        #record test samples
+        if test_samples is not None:
+            for sample in test_samples:
+                x, y = sample.plt_coord
+                x_coords['test data'].append(x)
+                y_coords['test data'].append(y)
+        #plot samples
+        class_plt_style['unknown'] = DFLT_TRAINING_CLASS_STYLE
+        class_plt_style['test data'] = DFLT_TEST_CLASS_STYLE
+        plots = OrderedDict()
+        for sample_class in sorted(x_coords.keys()):
+            p = ax.plot(x_coords[sample_class],
+                        y_coords[sample_class],
+                        class_plt_style[sample_class],
+                        label=sample_class,
+                        markersize=marker_size,
+                        )
+            plots[sample_class] = p
+        ax.set_ylim([0, self.map_rows+1])
+        ax.set_xlim([0, self.map_cols+1])
+        ax.set_title(group_name, fontsize=txt_size)
+        txt_props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+        ax.legend(map(lambda x: plots[x][0], plots),
+                  plots,
+                  bbox_to_anchor=(1., 1.02),
+                  loc=2,
+                  ncol=1,
+                  prop={'size':txt_size},
+                  )
+        return ax
+
     def visualize_plt(self,
                       ax,
                       training_samples,

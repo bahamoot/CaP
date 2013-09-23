@@ -45,8 +45,6 @@ class TestSOMBase(SafeModelTester):
         self.assertEqual(model.max_nbh_size,
                          DFLT_MAX_NBH_SIZE,
                          'Incorrect maximum number of neighborhood')
-        self.assertTrue(model.random_seed is DFLT_SEED,
-                        'Invalid random seed')
 
     def test_init_custom(self):
         """ to check if SOMBase initialize correctly (custom) """
@@ -190,8 +188,6 @@ class TestSOM2D(SafeModelTester):
         self.assertEqual(model.max_nbh_size,
                          DFLT_MAX_NBH_SIZE,
                          'Incorrect maximum number of neighborhood')
-        self.assertTrue(model.random_seed is DFLT_SEED,
-                        'Invalid random seed')
 
     def test_to_grid(self):
         """ to check if SOM2D can transform indices to 2D positions """
