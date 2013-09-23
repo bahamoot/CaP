@@ -14,6 +14,8 @@ from cap.settings import DFLT_MAP_COLS
 from cap.settings import DFLT_SEED
 from cap.settings import FIGS_TMP_OUT_DIR
 from cap.settings import TERM_TMP_OUT_DIR
+from cap.settings import TYPE_TRAINING_SAMPLE
+from cap.settings import TYPE_TEST_SAMPLE
 
 
 ROOT_DEMO_DATA = '/home/jessada/development/scilifelab/projects/CaP/cap/data/'
@@ -80,14 +82,14 @@ def demo_som2d_paradigm():
                                                  'Transverse Colon': 'bp',
                                                  },
                              })
-#    visualize_params.append({'type': 'scatter',
-#                             'group_name': 'tumor_site',
-#                             'class_plt_style': {'1 - right colon': 'r^',
-#                                                 '2 - transverse colon': 'b*',
-#                                                 '3 - left colon': 'gv',
-#                                                 '4 - rectum': 'mo',
-#                                                 },
-#                             })
+    visualize_params.append({'type': 'scatter',
+                             'group_name': 'tumor_site',
+                             'class_plt_style': {'1 - right colon': 'r^',
+                                                 '2 - transverse colon': 'b*',
+                                                 '3 - left colon': 'gv',
+                                                 '4 - rectum': 'mo',
+                                                 },
+                             })
     out = som2d_paradigm(DEMO_TRAINING_FEATURES,
                          DEMO_TRAINING_CLASSES,
                          test_features_file=DEMO_TEST_FEATURES,
@@ -135,7 +137,8 @@ def som2d(training_features_file,
     training_samples = cap.plugin.base.load_samples(training_features_file,
                                                     training_classes_file)
     if test_features_file is not None:
-        test_samples = cap.plugin.base.load_samples(test_features_file)
+        test_samples = cap.plugin.base.load_samples(test_features_file,
+                                                    samples_type=TYPE_TEST_SAMPLE)
     else:
         test_samples = None
 
@@ -184,10 +187,8 @@ def som2d(training_features_file,
             fig_row = ((idx//fig_cols)*fig_height) + description_height
             ax = plt.subplot2grid((plt_rows, plt_cols), (fig_row, fig_col), colspan=fig_width, rowspan=fig_height)
             out_plt = model.visualize_plt(ax,
-                                          training_samples,
                                           params['group_name'],
                                           params['class_plt_style'],
-                                          test_samples=test_samples,
                                           )
         idx += 1
     #plot training attributes

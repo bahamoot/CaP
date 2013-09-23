@@ -1,12 +1,11 @@
 import numpy as np
 from cap.template import CaPBase
 from collections import namedtuple
+from cap.settings import TYPE_TRAINING_SAMPLE
+from cap.settings import TYPE_TEST_SAMPLE
 
 
 Coord = namedtuple('Coord', ['x', 'y'])
-
-TYPE_TRAINING_SAMPLE = 'training'
-TYPE_TEST_SAMPLE = 'test'
 
 class Sample(CaPBase):
     """ to keep and manipulate sample information """
@@ -169,6 +168,7 @@ class SamplesLoader(CaPBase):
 
 def load_samples(features_file=None,
                  classes_file=None,
+                 samples_type=TYPE_TRAINING_SAMPLE,
                  ):
     """
 
@@ -179,5 +179,5 @@ def load_samples(features_file=None,
 
     """
 
-    sl = SamplesLoader(features_file, classes_file)
+    sl = SamplesLoader(features_file, classes_file, samples_type)
     return sl.get_samples_list()

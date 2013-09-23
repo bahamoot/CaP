@@ -1,8 +1,8 @@
 import os
 import cap.plugin.base
 from cap.plugin.base import SamplesLoader
-from cap.plugin.base import TYPE_TRAINING_SAMPLE
-from cap.plugin.base import TYPE_TEST_SAMPLE
+from cap.settings import TYPE_TRAINING_SAMPLE
+from cap.settings import TYPE_TEST_SAMPLE
 from cap.plugin.test.template import SafePluginTester
 
 
@@ -25,7 +25,9 @@ class TestMisc(SafePluginTester):
         test_classes_file = os.path.join(self.data_dir,
                                          self.current_func_name + '_classes.txt')
         test_samples = cap.plugin.base.load_samples(test_features_file,
-                                                    test_classes_file)
+                                                    test_classes_file,
+                                                    samples_type=TYPE_TEST_SAMPLE,
+                                                    )
         test_sample_idx = None
         for i in xrange(len(test_samples)):
             if test_samples[i].name == 'TCGA-AA-3672':
@@ -61,7 +63,7 @@ class TestMisc(SafePluginTester):
                          44,
                          'Invalid number of classes')
         self.assertEqual(test_sample.sample_type,
-                         TYPE_TRAINING_SAMPLE,
+                         TYPE_TEST_SAMPLE,
                          'Invalid sample type')
 
 
@@ -169,3 +171,6 @@ class TestSamplesLoader(SafePluginTester):
         self.assertEqual(len(test_sample.classes),
                          44,
                          'Invalid number of classes')
+        self.assertEqual(test_sample.sample_type,
+                         TYPE_TRAINING_SAMPLE,
+                         'Invalid sample type')
