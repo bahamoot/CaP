@@ -411,7 +411,7 @@ class SOM2D(SOMBase):
         x = np.arange(0, 4.001, 1)
         y = np.arange(0, 4.001, 1)
         X, Y = np.meshgrid(x, y)
-        Z = np.array([[0, 0, 423, 0], [0, 680, 595, 0], [0, 523, 0, 0], [503, 0, 0, 648]])
+        Z = np.array([[0, 0, 0, 423, 0], [0, 0, 680, 595, 0], [0, 0, 523, 0, 0], [0, 0, 560, 0, 0], [0, 503, 0, 0, 648]])
         levels = np.array([0, 400, 420, 440, 460, 480, 500, 520, 540, 560, 580, 600, 620, 640, 660, 680, 700])  # Boost the upper limit to avoid truncation
         norm = cm.colors.Normalize(vmax=abs(Z).max(), vmin=abs(Z).min())
         cmap = cm.PRGn
