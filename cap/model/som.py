@@ -408,8 +408,8 @@ class SOM2D(SOMBase):
                           ax,
                           group_name,
                           ):
-        x = np.arange(1.0, 4.001, 1)
-        y = np.arange(1.0, 4.001, 1)
+        x = np.arange(0, 4.001, 1)
+        y = np.arange(0, 4.001, 1)
         X, Y = np.meshgrid(x, y)
         Z = np.array([[0, 0, 423, 0], [0, 680, 595, 0], [0, 523, 0, 0], [503, 0, 0, 648]])
         levels = np.array([0, 400, 420, 440, 460, 480, 500, 520, 540, 560, 580, 600, 620, 640, 660, 680, 700])  # Boost the upper limit to avoid truncation
