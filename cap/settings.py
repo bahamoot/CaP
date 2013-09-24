@@ -26,4 +26,6 @@ DFLT_MAX_NBH_SIZE = 10
 DFLT_MAP_ROWS = 17
 DFLT_MAP_COLS = 17
 
-
+# > > > > > > > > > > > > > samples type < < < < < < < < < <
+TYPE_TRAINING_SAMPLE = 'training'
+TYPE_TEST_SAMPLE = 'test'

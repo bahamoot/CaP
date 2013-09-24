@@ -12,6 +12,8 @@ from cap.settings import DFLT_NBH_STEP_SIZE
 from cap.settings import DFLT_MAX_NBH_SIZE
 from cap.settings import DFLT_MAP_ROWS
 from cap.settings import DFLT_MAP_COLS
+from cap.settings import TYPE_TRAINING_SAMPLE
+from cap.settings import TYPE_TEST_SAMPLE
 from collections import defaultdict
 from collections import OrderedDict
 from random import randint
@@ -131,6 +133,41 @@ class SOMBase(CaPBase):
             print sample.name
 
 
+class VisualizeLegend(CaPBase):
+    """ to store legend information """
+
+    def __init__(self,
+                 hide=False,
+                 random_seed=DFLT_SEED,
+                 ):
+        CaPBase.__init__(self)
+        self.legend_txt = None
+        self.marker_size = None
+        self.style = None
+        self.__hide = hide
+        self.x_coords = []
+        self.y_coords = []
+
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self):
+        return '<' + self.__class__.__name__ + ' Object> ' + str(self.get_raw_repr())
+
+    def get_raw_repr(self):
+        return {"legend text": self.legend_txt,
+                "marker size": self.marker_size,
+                "style": self.style,
+                "hide": self.hide,
+                "x coordinates": self.x_coords,
+                "y coordinates": self.y_coords,
+                }
+
+    @property
+    def hide(self):
+        return self.__hide
+
+
 class SOM2D(SOMBase):
 
     def __init__(self,
@@ -196,7 +233,7 @@ class SOM2D(SOMBase):
         if len(list_item) == 0:
             return fmt.format('.')
         else:
-            return fmt.format(', '.join(list_item))
+            return fmt.format(', '.join(map(lambda x: x.name, list_item)))
 
     def __get_grid_coord(self, features):
         winner, diff = self.calc_similarity(features)
@@ -230,6 +267,33 @@ class SOM2D(SOMBase):
                 sample.set_term_coord(row=row, col=col)
                 plt_row, plt_col = self.__to_plt(row, col)
                 sample.set_plt_coord(row=plt_row, col=plt_col)
+
+    def __generate_samples_matrix(self,
+                                  training_samples,
+                                  test_samples=None,
+                                  ):
+        self.__sm = []
+        for i in xrange(self.map_rows+1):
+            samples_row = []
+            for j in xrange(self.map_cols+1):
+                samples_row.append([])
+            self.__sm.append(samples_row)
+        #add samples to matrix
+        for sample in training_samples:
+            x, y = sample.plt_coord
+            self.__sm[y][x].append(sample)
+        if test_samples is not None:
+            for sample in test_samples:
+                x, y = sample.plt_coord
+                self.__sm[y][x].append(sample)
+
+
+    def load_visualize_samples(self,
+                               training_samples,
+                               test_samples=None,
+                               ):
+        self.__calc_samples_coord(training_samples, test_samples)
+        self.__generate_samples_matrix(training_samples, test_samples)
 
     def visualize_txt(self,
                       ax,
@@ -270,26 +334,9 @@ class SOM2D(SOMBase):
         return ax
 
     def visualize_terminal(self,
-                           training_samples,
                            txt_width=DFLT_TERMINAL_STR_WIDTH,
-                           test_samples=None,
                            out_folder=None,
                            ):
-        self.__calc_samples_coord(training_samples, test_samples)
-        out = []
-        for i in xrange(self.map_rows):
-            out_row = []
-            for j in xrange(self.map_cols):
-                out_row.append([])
-            out.append(out_row)
-        #create terminal matrix
-        for sample in training_samples:
-            x, y = sample.term_coord
-            out[y][x].append(sample.name)
-        if test_samples is not None:
-            for sample in test_samples:
-                x, y = sample.term_coord
-                out[y][x].append(sample.name)
         #redirect stdout if output folder is presented
         if out_folder is not None:
             terminal_out = os.path.join(out_folder,
@@ -299,9 +346,9 @@ class SOM2D(SOMBase):
         else:
             terminal_out = None
         #throw matrix to stdout
-        for row_items in out:
+        for row_items in self.__sm[1:len(self.__sm)]:
             line = " ".join(map(lambda x: self.to_str(x, txt_width),
-                                row_items
+                                row_items[1:len(row_items)]
                                 ))
             print line
         #redirect stdout back to the normal one
@@ -312,34 +359,17 @@ class SOM2D(SOMBase):
 
     def visualize_sample_name(self,
                               ax,
-                              training_samples,
-                              test_samples=None,
                               out_file_name=None,
                               txt_size=6,
                               ):
-        self.__calc_samples_coord(training_samples, test_samples)
-        out = []
-        for i in xrange(self.map_rows+1):
-            out_row = []
-            for j in xrange(self.map_cols+1):
-                out_row.append([])
-            out.append(out_row)
-        #create terminal matrix
-        for sample in training_samples:
-            x, y = sample.plt_coord
-            out[y][x].append(sample.name)
-        if test_samples is not None:
-            for sample in test_samples:
-                x, y = sample.plt_coord
-                out[y][x].append(sample.name)
-        #throw matrix to axes
+        sm = self.__sm
         bbox_props = dict(boxstyle="round", fc="w", ec="0.5", alpha=0.9, linewidth=0.1)
-        for y in xrange(len(out)):
-            for x in xrange(len(out[y])):
-                if len(out[y][x]) > 0:
+        for y in xrange(len(sm)):
+            for x in xrange(len(sm[y])):
+                if len(sm[y][x]) > 0:
                     ax.text(x,
                             y,
-                            ", ".join(out[y][x]),
+                            ", ".join(map(lambda x: x.name, sm[y][x])),
                             ha="center",
                             va="center",
                             size=2,
@@ -351,50 +381,74 @@ class SOM2D(SOMBase):
 
     def visualize_plt(self,
                       ax,
-                      training_samples,
                       group_name,
                       class_plt_style,
-                      test_samples=None,
                       marker_size=3,
                       txt_size=6,
                       ):
-        self.__calc_samples_coord(training_samples, test_samples)
-        #record training samples
-        x_coords = defaultdict(list)
-        y_coords = defaultdict(list)
-        for sample in training_samples:
-            x, y = sample.plt_coord
-            sample_class = sample.classes[group_name]
-            if sample_class in class_plt_style:
-                x_coords[sample_class].append(x)
-                y_coords[sample_class].append(y)
-            else:
-                x_coords['unknown'].append(x)
-                y_coords['unknown'].append(y)
-        #record test samples
-        if test_samples is not None:
-            for sample in test_samples:
-                x, y = sample.plt_coord
-                x_coords['test data'].append(x)
-                y_coords['test data'].append(y)
-        #plot samples
+        sm = self.__sm
+        #generate default legend
+        legend_list = defaultdict(VisualizeLegend)
+        for sample_class in class_plt_style:
+            legend_list[sample_class].legend_txt = sample_class
+            legend_list[sample_class].marker_size = marker_size
+            legend_list[sample_class].style = class_plt_style[sample_class]
+        legend_list['unknown'].legend_txt = 'unknown'
+        legend_list['unknown'].marker_size = marker_size
+        legend_list['unknown'].style = DFLT_TRAINING_CLASS_STYLE
+        legend_list['test data'].legend_txt = 'test data'
+        legend_list['test data'].marker_size = marker_size
+        legend_list['test data'].style = DFLT_TEST_CLASS_STYLE
         class_plt_style['unknown'] = DFLT_TRAINING_CLASS_STYLE
         class_plt_style['test data'] = DFLT_TEST_CLASS_STYLE
-        plots = OrderedDict()
-        for sample_class in sorted(x_coords.keys()):
-            p = ax.plot(x_coords[sample_class],
-                        y_coords[sample_class],
-                        class_plt_style[sample_class],
-                        label=sample_class,
-                        markersize=marker_size,
+        #count class frequency for each xy and generate new legend if any
+        for y in xrange(len(sm)):
+            for x in xrange(len(sm[y])):
+                #count class frequency
+                sample_class_count = defaultdict(lambda: 0)
+                for sample in sm[y][x]:
+                    if sample.sample_type == TYPE_TRAINING_SAMPLE:
+                        sample_class = sample.classes[group_name]
+                        if sample_class in class_plt_style:
+                            sample_class_count[sample_class] += 1
+                        else:
+                            sample_class_count['unknown'] += 1
+                    elif sample.sample_type == TYPE_TEST_SAMPLE:
+                        sample_class_count['test data'] += 1
+                #generate new legend if any
+                for sample_class in sample_class_count:
+                    #generate legend key
+                    sample_count = sample_class_count[sample_class]
+                    if sample_count == 1:
+                        legend_key = sample_class
+                    else:
+                        legend_key = sample_class + ' (' + str(sample_count) + ')'
+                    #look up, add any, and add coordinate to the key
+                    if legend_key not in legend_list:
+                        legend_list[legend_key].legend_txt = sample_class
+                        legend_list[legend_key].marker_size = marker_size + (sample_count-1)*2
+                        legend_list[legend_key].style = class_plt_style[sample_class]
+                    legend_list[legend_key].x_coords.append(x)
+                    legend_list[legend_key].y_coords.append(y)
+        legend_list = {x:legend_list[x] for x in legend_list if len(legend_list[x].x_coords)!=0}
+        for legend_key in legend_list:
+            if len(legend_list[legend_key].x_coords) == 0:
+                del legend_list[legend_key]
+        for legend_key in legend_list:
+            p = ax.plot(legend_list[legend_key].x_coords,
+                        legend_list[legend_key].y_coords,
+                        legend_list[legend_key].style,
+                        label=legend_key,
+                        markersize=legend_list[legend_key].marker_size,
                         )
-            plots[sample_class] = p
+            legend_list[legend_key].plot = p
         ax.set_ylim([0, self.map_rows+1])
         ax.set_xlim([0, self.map_cols+1])
         ax.set_title(group_name, fontsize=txt_size)
         txt_props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-        ax.legend(map(lambda x: plots[x][0], plots),
-                  plots,
+        legend_list=OrderedDict(sorted(legend_list.items(), key=lambda x: x[0]))
+        ax.legend(map(lambda x: legend_list[x].plot[0], legend_list),
+                  legend_list,
                   bbox_to_anchor=(1., 1.02),
                   loc=2,
                   ncol=1,

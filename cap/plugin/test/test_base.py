@@ -1,6 +1,8 @@
 import os
 import cap.plugin.base
 from cap.plugin.base import SamplesLoader
+from cap.settings import TYPE_TRAINING_SAMPLE
+from cap.settings import TYPE_TEST_SAMPLE
 from cap.plugin.test.template import SafePluginTester
 
 
@@ -23,7 +25,9 @@ class TestMisc(SafePluginTester):
         test_classes_file = os.path.join(self.data_dir,
                                          self.current_func_name + '_classes.txt')
         test_samples = cap.plugin.base.load_samples(test_features_file,
-                                                    test_classes_file)
+                                                    test_classes_file,
+                                                    samples_type=TYPE_TEST_SAMPLE,
+                                                    )
         test_sample_idx = None
         for i in xrange(len(test_samples)):
             if test_samples[i].name == 'TCGA-AA-3672':
@@ -58,6 +62,9 @@ class TestMisc(SafePluginTester):
         self.assertEqual(len(test_sample.classes),
                          44,
                          'Invalid number of classes')
+        self.assertEqual(test_sample.sample_type,
+                         TYPE_TEST_SAMPLE,
+                         'Invalid sample type')
 
 
 class TestSamplesLoader(SafePluginTester):
@@ -80,6 +87,7 @@ class TestSamplesLoader(SafePluginTester):
                                          self.current_func_name + '_classes.txt')
         sl = SamplesLoader(features_file=test_features_file,
                            classes_file=test_classes_file,
+                           samples_type=TYPE_TEST_SAMPLE,
                            )
         test_samples = sl.get_samples_hash()
         self.assertEqual(test_samples['TCGA-AG-A02X'].name,
@@ -112,6 +120,9 @@ class TestSamplesLoader(SafePluginTester):
         self.assertEqual(len(test_samples['TCGA-AA-3532'].classes),
                          44,
                          'Invalid number of classes')
+        self.assertEqual(test_samples['TCGA-AA-3532'].sample_type,
+                         TYPE_TEST_SAMPLE,
+                         'Invalid sample type')
 
     def test_get_samples_list(self):
         """ to test if the base list samples are correctly loaded """
@@ -160,3 +171,6 @@ class TestSamplesLoader(SafePluginTester):
         self.assertEqual(len(test_sample.classes),
                          44,
                          'Invalid number of classes')
+        self.assertEqual(test_sample.sample_type,
+                         TYPE_TRAINING_SAMPLE,
+                         'Invalid sample type')

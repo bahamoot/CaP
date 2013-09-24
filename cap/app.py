@@ -14,6 +14,8 @@ from cap.settings import DFLT_MAP_COLS
 from cap.settings import DFLT_SEED
 from cap.settings import FIGS_TMP_OUT_DIR
 from cap.settings import TERM_TMP_OUT_DIR
+from cap.settings import TYPE_TRAINING_SAMPLE
+from cap.settings import TYPE_TEST_SAMPLE
 
 
 ROOT_DEMO_DATA = '/home/jessada/development/scilifelab/projects/CaP/cap/data/'
@@ -27,8 +29,8 @@ DEMO_TEST_CLASSES = os.path.join(ROOT_DEMO_DATA,
                                  'demo_test_classes.txt')
 DEMO_OUT_DIR = '/home/jessada/development/scilifelab/projects/CaP/out/tmp/'
 PARADIGM_WEIGHT_STEP_SIZE = 0.2
-PARADIGM_NBH_STEP_SIZE = 5
-PARADIGM_MAX_NBH_SIZE = 8
+PARADIGM_NBH_STEP_SIZE = 8
+PARADIGM_MAX_NBH_SIZE = 5
 PARADIGM_MAP_ROWS = 10
 PARADIGM_MAP_COLS = 10
 PARADIGM_RANDOM_SEED = None
@@ -84,8 +86,8 @@ def demo_som2d_paradigm():
                              'group_name': 'tumor_site',
                              'class_plt_style': {'1 - right colon': 'r^',
                                                  '2 - transverse colon': 'b*',
-                                                 '3 - left colon': 'gv',
-                                                 '4 - rectum': 'mo',
+                                                 '3 - left colon': 'mo',
+                                                 '4 - rectum': 'gv',
                                                  },
                              })
     out = som2d_paradigm(DEMO_TRAINING_FEATURES,
@@ -135,7 +137,8 @@ def som2d(training_features_file,
     training_samples = cap.plugin.base.load_samples(training_features_file,
                                                     training_classes_file)
     if test_features_file is not None:
-        test_samples = cap.plugin.base.load_samples(test_features_file)
+        test_samples = cap.plugin.base.load_samples(test_features_file,
+                                                    samples_type=TYPE_TEST_SAMPLE)
     else:
         test_samples = None
 
@@ -151,8 +154,9 @@ def som2d(training_features_file,
     #shorten training samples name
     for training_sample in training_samples:
         training_sample.name = training_sample.name.replace("TCGA-", "")
-    #train
+    #train and load sample for visualize
     model.train(training_samples)
+    model.load_visualize_samples(training_samples, test_samples)
 
     #generate summary pdf report
     pdf_font = {'family' : 'monospace',
@@ -174,24 +178,17 @@ def som2d(training_features_file,
             fig_col = (idx%fig_cols) * (fig_width+legend_width)
             fig_row = ((idx//fig_cols)*fig_height) + description_height
             ax = plt.subplot2grid((plt_rows, plt_cols), (fig_row, fig_col), colspan=fig_width, rowspan=fig_height)
-            out_terminal = model.visualize_terminal(training_samples,
-                                                    txt_width=params['txt_width'],
+            out_terminal = model.visualize_terminal(txt_width=params['txt_width'],
                                                     out_folder=out_folder,
-                                                    test_samples=test_samples,
                                                     )
-            model.visualize_sample_name(ax,
-                                        training_samples,
-                                        test_samples=test_samples,
-                                        )
+            model.visualize_sample_name(ax)
         elif params['type'] == 'scatter':
             fig_col = (idx%fig_cols) * (fig_width+legend_width)
             fig_row = ((idx//fig_cols)*fig_height) + description_height
             ax = plt.subplot2grid((plt_rows, plt_cols), (fig_row, fig_col), colspan=fig_width, rowspan=fig_height)
             out_plt = model.visualize_plt(ax,
-                                          training_samples,
                                           params['group_name'],
                                           params['class_plt_style'],
-                                          test_samples=test_samples,
                                           )
         idx += 1
     #plot training attributes
