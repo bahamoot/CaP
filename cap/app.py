@@ -70,26 +70,32 @@ def demo_som2d_paradigm():
                                            'Stage IV': 'mx',
                                            },
                              })
-    visualize_params.append({'type': 'scatter',
-                             'group_name': 'anatomic_organ_subdivision',
-                             'plt_style': {'Ascending Colon': 'r^',
-                                           'Cecum': 'b*',
-                                           'Descending Colon': 'yD',
-                                           'Hepatic Flexure': 'mH',
-                                           'Rectosigmoid Junction': 'co',
-                                           'Rectum': 'gv',
-                                           'Sigmoid Colon': 'mx',
-                                           'Transverse Colon': 'bp',
-                                           },
+    visualize_params.append({'type': 'contour',
+                             'group_name': 'days_to_last_known_alive',
                              })
-    visualize_params.append({'type': 'scatter',
-                             'group_name': 'tumor_site',
-                             'plt_style': {'1 - right colon': 'r^',
-                                           '2 - transverse colon': 'b*',
-                                           '3 - left colon': 'mo',
-                                           '4 - rectum': 'gv',
-                                           },
+    visualize_params.append({'type': 'contour_txt',
+                             'group_name': 'days_to_last_known_alive',
                              })
+#    visualize_params.append({'type': 'scatter',
+#                             'group_name': 'anatomic_organ_subdivision',
+#                             'plt_style': {'Ascending Colon': 'r^',
+#                                           'Cecum': 'b*',
+#                                           'Descending Colon': 'yD',
+#                                           'Hepatic Flexure': 'mH',
+#                                           'Rectosigmoid Junction': 'co',
+#                                           'Rectum': 'gv',
+#                                           'Sigmoid Colon': 'mx',
+#                                           'Transverse Colon': 'bp',
+#                                           },
+#                             })
+#    visualize_params.append({'type': 'scatter',
+#                             'group_name': 'tumor_site',
+#                             'plt_style': {'1 - right colon': 'r^',
+#                                           '2 - transverse colon': 'b*',
+#                                           '3 - left colon': 'mo',
+#                                           '4 - rectum': 'gv',
+#                                           },
+#                             })
     out = som2d_paradigm(DEMO_TRAINING_FEATURES,
                          DEMO_TRAINING_CLASSES,
                          test_features_file=DEMO_TEST_FEATURES,
@@ -189,6 +195,14 @@ def som2d(training_samples,
                                           params['group_name'],
                                           params['plt_style'],
                                           )
+        elif params['type'] == 'contour':
+            out_plt = model.visualize_contour(ax,
+                                              params['group_name'],
+                                              )
+        elif params['type'] == 'contour_txt':
+            out_plt = model.visualize_contour_txt(ax,
+                                                  params['group_name'],
+                                                  )
         idx += 1
     #plot training attributes
     training_samples_size = len(training_samples)

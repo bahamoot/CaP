@@ -15,6 +15,7 @@ from cap.settings import TYPE_TEST_SAMPLE
 from collections import defaultdict
 from collections import OrderedDict
 from random import randint
+from matplotlib import cm
 
 
 DFLT_TRAINING_CLASS_STYLE = 'kp'
@@ -374,6 +375,71 @@ class SOM2D(SOMBase):
         ax.set_xlim([0, self.map_cols+1])
         ax.set_ylim([0, self.map_rows+1])
         ax.set_title("samples name", fontsize=txt_size)
+        return ax
+
+    def visualize_contour_txt(self,
+                              ax,
+                              group_name,
+                              ):
+        sm = self.__sm
+        bbox_props = dict(boxstyle="round",
+                          fc="w",
+                          ec="0.5",
+                          alpha=0.6,
+                          linewidth=0.1)
+        for y in xrange(len(sm)):
+            for x in xrange(len(sm[y])):
+                out_items = filter(lambda x: x.classes is not None, sm[y][x])
+                if len(out_items) > 0:
+                    ax.text(x,
+                            y,
+                            "\n".join(map(lambda x: x.classes[group_name],
+                                          out_items)),
+                            ha="center",
+                            va="center",
+                            size=2,
+                            bbox=bbox_props)
+        ax.set_xlim([0, self.map_cols+1])
+        ax.set_ylim([0, self.map_rows+1])
+        ax.set_title("samples name", fontsize=6)
+        return ax
+
+    def visualize_contour(self,
+                          ax,
+                          group_name,
+                          ):
+        x = np.arange(1.0, 4.001, 1)
+        y = np.arange(1.0, 4.001, 1)
+        X, Y = np.meshgrid(x, y)
+        Z = np.array([[0, 0, 423, 0], [0, 680, 595, 0], [0, 523, 0, 0], [503, 0, 0, 648]])
+        levels = np.array([0, 400, 420, 440, 460, 480, 500, 520, 540, 560, 580, 600, 620, 640, 660, 680, 700])  # Boost the upper limit to avoid truncation
+        norm = cm.colors.Normalize(vmax=abs(Z).max(), vmin=abs(Z).min())
+        cmap = cm.PRGn
+        ax.contourf(X, Y, Z, levels,
+                    cmap=cm.get_cmap(cmap, len(levels)-1),
+                    norm=norm,
+                    )
+#        sm = self.__sm
+#        bbox_props = dict(boxstyle="round",
+#                          fc="w",
+#                          ec="0.5",
+#                          alpha=0.6,
+#                          linewidth=0.1)
+#        for y in xrange(len(sm)):
+#            for x in xrange(len(sm[y])):
+#                out_items = filter(lambda x: x.classes is not None, sm[y][x])
+#                if len(out_items) > 0:
+#                    ax.text(x,
+#                            y,
+#                            "\n".join(map(lambda x: x.classes[group_name],
+#                                          out_items)),
+#                            ha="center",
+#                            va="center",
+#                            size=2,
+#                            bbox=bbox_props)
+#        ax.set_xlim([0, self.map_cols+1])
+#        ax.set_ylim([0, self.map_rows+1])
+#        ax.set_title("samples name", fontsize=6)
         return ax
 
     def visualize_plt(self,
