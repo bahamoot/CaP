@@ -267,7 +267,7 @@ class SOM2D(SOMBase):
 
     def __generate_samples_matrix(self,
                                   training_samples,
-                                  test_samples=None,
+                                  test_samples=[],
                                   ):
         self.__sm = []
         for i in xrange(self.map_rows+1):
@@ -279,15 +279,14 @@ class SOM2D(SOMBase):
         for sample in training_samples:
             x, y = sample.plt_coord
             self.__sm[y][x].append(sample)
-        if test_samples is not None:
-            for sample in test_samples:
-                x, y = sample.plt_coord
-                self.__sm[y][x].append(sample)
+        for sample in test_samples:
+            x, y = sample.plt_coord
+            self.__sm[y][x].append(sample)
 
 
     def load_visualize_samples(self,
                                training_samples,
-                               test_samples=None,
+                               test_samples=[],
                                ):
         self.__calc_samples_coord(training_samples, test_samples)
         self.__generate_samples_matrix(training_samples, test_samples)
@@ -360,14 +359,14 @@ class SOM2D(SOMBase):
         bbox_props = dict(boxstyle="round",
                           fc="w",
                           ec="0.5",
-                          alpha=0.9,
+                          alpha=0.6,
                           linewidth=0.1)
         for y in xrange(len(sm)):
             for x in xrange(len(sm[y])):
                 if len(sm[y][x]) > 0:
                     ax.text(x,
                             y,
-                            ", ".join(map(lambda x: x.name, sm[y][x])),
+                            "\n".join(map(lambda x: x.name, sm[y][x])),
                             ha="center",
                             va="center",
                             size=2,

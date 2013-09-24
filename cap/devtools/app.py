@@ -26,14 +26,14 @@ def demo_toy_training():
                   )
     model.train(animals)
     model.load_visualize_samples(animals, test_samples)
-    model.visualize_terminal()
+    model.visualize_term()
     fig = plt.figure()
     ax = plt.subplot2grid((2, 3), (0, 0), colspan=2, rowspan=2)
     model.visualize_plt(ax,
                         29,
-                        class_plt_style={0: 'r^',
-                                         1: 'b*',
-                                         },
+                        plt_style={0: 'r^',
+                                   1: 'b*',
+                                   },
                         )
     plt.tight_layout()
     plt.show()

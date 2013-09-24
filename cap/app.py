@@ -101,7 +101,7 @@ def demo_som2d_paradigm():
 def som2d_paradigm(training_features_file,
                    training_classes_file,
                    test_features_file=None,
-                   visualize_params=None,
+                   visualize_params=[],
                    ):
     current_time = get_time_stamp()
     out_folder = os.path.join(DEMO_OUT_DIR,
@@ -132,8 +132,8 @@ def som2d_paradigm(training_features_file,
 
 #wrap all require stuffs to run SOM2D
 def som2d(training_samples,
-          test_samples=None,
-          visualize_params=None,
+          test_samples=[],
+          visualize_params=[],
           out_folder=None,
           map_rows=DFLT_MAP_ROWS,
           map_cols=DFLT_MAP_COLS,
@@ -192,10 +192,7 @@ def som2d(training_samples,
         idx += 1
     #plot training attributes
     training_samples_size = len(training_samples)
-    if test_samples is not None:
-        test_samples_size = len(test_samples)
-    else:
-        test_samples_size = 0
+    test_samples_size = len(test_samples)
     iterations = int(ceil(float(model.max_nbh_size)/model.nbh_step_size))
     col1_txt_fmt = "{caption:<28}:{value:>7}"
     col1_txt = []
