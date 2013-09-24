@@ -29,8 +29,8 @@ DEMO_TEST_CLASSES = os.path.join(ROOT_DEMO_DATA,
                                  'demo_test_classes.txt')
 DEMO_OUT_DIR = '/home/jessada/development/scilifelab/projects/CaP/out/tmp/'
 PARADIGM_WEIGHT_STEP_SIZE = 0.2
-PARADIGM_NBH_STEP_SIZE = 5
-PARADIGM_MAX_NBH_SIZE = 8
+PARADIGM_NBH_STEP_SIZE = 8
+PARADIGM_MAX_NBH_SIZE = 5
 PARADIGM_MAP_ROWS = 10
 PARADIGM_MAP_COLS = 10
 PARADIGM_RANDOM_SEED = None
@@ -86,8 +86,8 @@ def demo_som2d_paradigm():
                              'group_name': 'tumor_site',
                              'class_plt_style': {'1 - right colon': 'r^',
                                                  '2 - transverse colon': 'b*',
-                                                 '3 - left colon': 'gv',
-                                                 '4 - rectum': 'mo',
+                                                 '3 - left colon': 'mo',
+                                                 '4 - rectum': 'gv',
                                                  },
                              })
     out = som2d_paradigm(DEMO_TRAINING_FEATURES,
