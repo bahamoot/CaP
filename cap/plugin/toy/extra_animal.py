@@ -1,6 +1,7 @@
 import numpy
 from cap.template import CaPBase
 from cap.plugin.toy.animal import Animal
+from cap.settings import TYPE_TRAINING_SAMPLE
 
 my_animals = ('antelop', 'ape', 'bat', 'bear', 'beetle', 'butterfly', 'camel', 'cat', 'chicken', 'crocodile', 'dog', 'dragonfly',
 	   'duck', 'elephant', 'frog', 'giraffe', 'grasshopper', 'horse', 'housefly', 'hyena', 'kangaroo', 'lion',
@@ -240,12 +241,13 @@ setProps('spider',
 #        self.__features = value
 
 
-def load_animals():
+def load_animals(samples_type=TYPE_TRAINING_SAMPLE):
     animals = []
     for animal_name in my_animals:
         animal = Animal(animal_name)
         animal.features = my_props[animal_name]
         animal.classes = my_props[animal_name]
+        animal.sample_type = samples_type
         animals.append(animal)
     return animals
 

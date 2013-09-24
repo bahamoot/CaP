@@ -359,7 +359,6 @@ class SOM2D(SOMBase):
 
     def visualize_sample_name(self,
                               ax,
-                              out_file_name=None,
                               txt_size=6,
                               ):
         sm = self.__sm

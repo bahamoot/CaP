@@ -108,9 +108,18 @@ def som2d_paradigm(training_features_file,
                               'Paradigm/'+current_time)
     if not os.path.isdir(out_folder):
         os.makedirs(out_folder)
-    return som2d(training_features_file,
-                 training_classes_file,
-                 test_features_file=test_features_file,
+    training_samples = cap.plugin.base.load_samples(training_features_file,
+                                                    training_classes_file)
+    if test_features_file is not None:
+        test_samples = cap.plugin.base.load_samples(test_features_file,
+                                                    samples_type=TYPE_TEST_SAMPLE)
+    else:
+        test_samples = None
+    #shorten training samples name
+    for training_sample in training_samples:
+        training_sample.name = training_sample.name.replace("TCGA-", "")
+    return som2d(training_samples,
+                 test_samples,
                  visualize_params=visualize_params,
                  out_folder=out_folder,
                  map_rows=PARADIGM_MAP_ROWS,
@@ -122,9 +131,8 @@ def som2d_paradigm(training_features_file,
                  )
 
 #wrap all require stuffs to run SOM2D
-def som2d(training_features_file,
-          training_classes_file,
-          test_features_file=None,
+def som2d(training_samples,
+          test_samples=None,
           visualize_params=None,
           out_folder=None,
           map_rows=DFLT_MAP_ROWS,
@@ -134,14 +142,6 @@ def som2d(training_features_file,
           max_nbh_size=DFLT_MAX_NBH_SIZE,
           random_seed=DFLT_SEED,
           ):
-    training_samples = cap.plugin.base.load_samples(training_features_file,
-                                                    training_classes_file)
-    if test_features_file is not None:
-        test_samples = cap.plugin.base.load_samples(test_features_file,
-                                                    samples_type=TYPE_TEST_SAMPLE)
-    else:
-        test_samples = None
-
     features_size = len(training_samples[0].features)
     model = SOM2D(features_size,
                   map_rows=map_rows,
@@ -151,9 +151,6 @@ def som2d(training_features_file,
                   max_nbh_size=max_nbh_size,
                   random_seed=random_seed,
                   )
-    #shorten training samples name
-    for training_sample in training_samples:
-        training_sample.name = training_sample.name.replace("TCGA-", "")
     #train and load sample for visualize
     model.train(training_samples)
     model.load_visualize_samples(training_samples, test_samples)
@@ -174,17 +171,15 @@ def som2d(training_features_file,
     idx = 0
     #plot figures
     for params in visualize_params:
+        fig_col = (idx%fig_cols) * (fig_width+legend_width)
+        fig_row = ((idx//fig_cols)*fig_height) + description_height
         if params['type'] == 'terminal':
-            fig_col = (idx%fig_cols) * (fig_width+legend_width)
-            fig_row = ((idx//fig_cols)*fig_height) + description_height
             ax = plt.subplot2grid((plt_rows, plt_cols), (fig_row, fig_col), colspan=fig_width, rowspan=fig_height)
             out_terminal = model.visualize_terminal(txt_width=params['txt_width'],
                                                     out_folder=out_folder,
                                                     )
             model.visualize_sample_name(ax)
         elif params['type'] == 'scatter':
-            fig_col = (idx%fig_cols) * (fig_width+legend_width)
-            fig_row = ((idx//fig_cols)*fig_height) + description_height
             ax = plt.subplot2grid((plt_rows, plt_cols), (fig_row, fig_col), colspan=fig_width, rowspan=fig_height)
             out_plt = model.visualize_plt(ax,
                                           params['group_name'],

@@ -1,6 +1,7 @@
 import numpy
 from cap.template import CaPBase
 from collections import namedtuple
+from cap.settings import TYPE_TRAINING_SAMPLE
 
 
 my_animals = ('antelop', 'ape', 'bat', 'bear', 'beetle', 'butterfly', 'camel', 'cat', 'crocodile', 'dog', 'dragonfly',
@@ -256,12 +257,13 @@ class Animal(CaPBase):
         return self.__plt_coord
 
 
-def load_animals():
+def load_animals(samples_type=TYPE_TRAINING_SAMPLE):
     animals = []
     for animal_name in my_animals:
         animal = Animal(animal_name)
         animal.features = my_props[animal_name]
         animal.classes = my_props[animal_name]
+        animal.sample_type = samples_type
         animals.append(animal)
     return animals
 
