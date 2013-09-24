@@ -331,14 +331,12 @@ class SOM2D(SOMBase):
         return ax
 
     def visualize_term(self,
-                           txt_width=DFLT_TERMINAL_STR_WIDTH,
-                           out_folder=None,
-                           ):
+                       txt_width=DFLT_TERMINAL_STR_WIDTH,
+                       out_file=None,
+                       ):
         #redirect stdout if output folder is presented
-        if out_folder is not None:
-            terminal_out = os.path.join(out_folder,
-                                        'terminal_out.txt')
-            sys.stdout = open(terminal_out,
+        if out_file is not None:
+            sys.stdout = open(out_file,
                               'w')
         else:
             terminal_out = None
@@ -349,10 +347,10 @@ class SOM2D(SOMBase):
                                 ))
             print line
         #redirect stdout back to the normal one
-        if out_folder is not None:
+        if out_file is not None:
             sys.stdout.flush()
             sys.stdout = sys.__stdout__
-        return terminal_out
+        return out_file
 
     def visualize_sample_name(self,
                               ax,
@@ -389,16 +387,6 @@ class SOM2D(SOMBase):
         sm = self.__sm
         #generate default legend
         lg_list = defaultdict(VisualizeLegend)
-        for sample_class in plt_style:
-            lg_list[sample_class].lg_txt = sample_class
-            lg_list[sample_class].mk_size = mk_size
-            lg_list[sample_class].style = plt_style[sample_class]
-        lg_list['unknown'].lg_txt = 'unknown'
-        lg_list['unknown'].mk_size = mk_size
-        lg_list['unknown'].style = DFLT_TRAINING_CLASS_STYLE
-        lg_list['test data'].lg_txt = 'test data'
-        lg_list['test data'].mk_size = mk_size
-        lg_list['test data'].style = DFLT_TEST_CLASS_STYLE
         plt_style['unknown'] = DFLT_TRAINING_CLASS_STYLE
         plt_style['test data'] = DFLT_TEST_CLASS_STYLE
         #count class frequency for each xy and generate new legend if any
@@ -430,10 +418,7 @@ class SOM2D(SOMBase):
                         lg_list[lg_key].style = plt_style[sample_class]
                     lg_list[lg_key].x_coords.append(x)
                     lg_list[lg_key].y_coords.append(y)
-        lg_list = {x:lg_list[x] for x in lg_list if len(lg_list[x].x_coords)!=0}
-        for lg_key in lg_list:
-            if len(lg_list[lg_key].x_coords) == 0:
-                del lg_list[lg_key]
+        #plot samples from each class
         for lg_key in lg_list:
             p = ax.plot(lg_list[lg_key].x_coords,
                         lg_list[lg_key].y_coords,

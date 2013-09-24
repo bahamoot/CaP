@@ -29,7 +29,7 @@ DEMO_TEST_CLASSES = os.path.join(ROOT_DEMO_DATA,
                                  'demo_test_classes.txt')
 DEMO_OUT_DIR = '/home/jessada/development/scilifelab/projects/CaP/out/tmp/'
 PARADIGM_WEIGHT_STEP_SIZE = 0.2
-PARADIGM_NBH_STEP_SIZE = 8
+PARADIGM_NBH_STEP_SIZE = 3
 PARADIGM_MAX_NBH_SIZE = 5
 PARADIGM_MAP_ROWS = 10
 PARADIGM_MAP_COLS = 10
@@ -178,8 +178,10 @@ def som2d(training_samples,
                               colspan=fig_width,
                               rowspan=fig_height)
         if params['type'] == 'terminal':
+            out_file = os.path.join(out_folder,
+                                    'terminal_out.txt')
             out_term = model.visualize_term(txt_width=params['txt_width'],
-                                            out_folder=out_folder,
+                                            out_file=out_file,
                                             )
             model.visualize_sample_name(ax)
         elif params['type'] == 'scatter':
