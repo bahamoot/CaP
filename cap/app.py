@@ -1,10 +1,9 @@
 import os
-import math
-import cap.plugin.base
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import datetime
+from math import ceil
 from cap.model.som import SOM2D
 from cap.settings import DFLT_WEIGHT_STEP_SIZE
 from cap.settings import DFLT_NBH_STEP_SIZE
@@ -16,6 +15,7 @@ from cap.settings import FIGS_TMP_OUT_DIR
 from cap.settings import TERM_TMP_OUT_DIR
 from cap.settings import TYPE_TRAINING_SAMPLE
 from cap.settings import TYPE_TEST_SAMPLE
+from cap.plugin.base import load_samples
 
 
 ROOT_DEMO_DATA = '/home/jessada/development/scilifelab/projects/CaP/cap/data/'
@@ -46,49 +46,49 @@ def demo_som2d_paradigm():
                              })
     visualize_params.append({'type': 'scatter',
                              'group_name': 'MSI_status',
-                             'class_plt_style': {'MSI-H': 'r^',
-                                                 'MSI-L': 'b*',
-                                                 'MSS': 'mo',
-                                                 },
+                             'plt_style': {'MSI-H': 'r^',
+                                           'MSI-L': 'b*',
+                                           'MSS': 'mo',
+                                           },
                              })
     visualize_params.append({'type': 'scatter',
                              'group_name': 'methylation_subtype',
-                             'class_plt_style': {'CIMP.H': 'r^',
-                                                 'CIMP.L': 'b*',
-                                                 'Cluster3': 'gv',
-                                                 'Cluster4': 'mo',
-                                                 },
+                             'plt_style': {'CIMP.H': 'r^',
+                                           'CIMP.L': 'b*',
+                                           'Cluster3': 'gv',
+                                           'Cluster4': 'mo',
+                                           },
                              })
     visualize_params.append({'type': 'scatter',
                              'group_name': 'tumor_stage',
-                             'class_plt_style': {'Stage I': 'r^',
-                                                 'Stage IIA': 'b*',
-                                                 'Stage IIB': 'yD',
-                                                 'Stage IIIA': 'mH',
-                                                 'Stage IIIB': 'co',
-                                                 'Stage IIIC': 'gv',
-                                                 'Stage IV': 'mx',
-                                                 },
+                             'plt_style': {'Stage I': 'r^',
+                                           'Stage IIA': 'b*',
+                                           'Stage IIB': 'yD',
+                                           'Stage IIIA': 'mH',
+                                           'Stage IIIB': 'co',
+                                           'Stage IIIC': 'gv',
+                                           'Stage IV': 'mx',
+                                           },
                              })
     visualize_params.append({'type': 'scatter',
                              'group_name': 'anatomic_organ_subdivision',
-                             'class_plt_style': {'Ascending Colon': 'r^',
-                                                 'Cecum': 'b*',
-                                                 'Descending Colon': 'yD',
-                                                 'Hepatic Flexure': 'mH',
-                                                 'Rectosigmoid Junction': 'co',
-                                                 'Rectum': 'gv',
-                                                 'Sigmoid Colon': 'mx',
-                                                 'Transverse Colon': 'bp',
-                                                 },
+                             'plt_style': {'Ascending Colon': 'r^',
+                                           'Cecum': 'b*',
+                                           'Descending Colon': 'yD',
+                                           'Hepatic Flexure': 'mH',
+                                           'Rectosigmoid Junction': 'co',
+                                           'Rectum': 'gv',
+                                           'Sigmoid Colon': 'mx',
+                                           'Transverse Colon': 'bp',
+                                           },
                              })
     visualize_params.append({'type': 'scatter',
                              'group_name': 'tumor_site',
-                             'class_plt_style': {'1 - right colon': 'r^',
-                                                 '2 - transverse colon': 'b*',
-                                                 '3 - left colon': 'mo',
-                                                 '4 - rectum': 'gv',
-                                                 },
+                             'plt_style': {'1 - right colon': 'r^',
+                                           '2 - transverse colon': 'b*',
+                                           '3 - left colon': 'mo',
+                                           '4 - rectum': 'gv',
+                                           },
                              })
     out = som2d_paradigm(DEMO_TRAINING_FEATURES,
                          DEMO_TRAINING_CLASSES,
@@ -108,11 +108,11 @@ def som2d_paradigm(training_features_file,
                               'Paradigm/'+current_time)
     if not os.path.isdir(out_folder):
         os.makedirs(out_folder)
-    training_samples = cap.plugin.base.load_samples(training_features_file,
-                                                    training_classes_file)
+    training_samples = load_samples(training_features_file,
+                                    training_classes_file)
     if test_features_file is not None:
-        test_samples = cap.plugin.base.load_samples(test_features_file,
-                                                    samples_type=TYPE_TEST_SAMPLE)
+        test_samples = load_samples(test_features_file,
+                                    samples_type=TYPE_TEST_SAMPLE)
     else:
         test_samples = None
     #shorten training samples name
@@ -173,17 +173,19 @@ def som2d(training_samples,
     for params in visualize_params:
         fig_col = (idx%fig_cols) * (fig_width+legend_width)
         fig_row = ((idx//fig_cols)*fig_height) + description_height
+        ax = plt.subplot2grid((plt_rows, plt_cols),
+                              (fig_row, fig_col),
+                              colspan=fig_width,
+                              rowspan=fig_height)
         if params['type'] == 'terminal':
-            ax = plt.subplot2grid((plt_rows, plt_cols), (fig_row, fig_col), colspan=fig_width, rowspan=fig_height)
-            out_terminal = model.visualize_terminal(txt_width=params['txt_width'],
-                                                    out_folder=out_folder,
-                                                    )
+            out_term = model.visualize_term(txt_width=params['txt_width'],
+                                            out_folder=out_folder,
+                                            )
             model.visualize_sample_name(ax)
         elif params['type'] == 'scatter':
-            ax = plt.subplot2grid((plt_rows, plt_cols), (fig_row, fig_col), colspan=fig_width, rowspan=fig_height)
             out_plt = model.visualize_plt(ax,
                                           params['group_name'],
-                                          params['class_plt_style'],
+                                          params['plt_style'],
                                           )
         idx += 1
     #plot training attributes
@@ -192,34 +194,36 @@ def som2d(training_samples,
         test_samples_size = len(test_samples)
     else:
         test_samples_size = 0
-    training_iterations = int(math.ceil(float(model.max_nbh_size)/model.nbh_step_size))
-    samples_txt_fmt = "{caption:<28}:{value:>7}"
-    samples_txt = []
-    samples_txt.append(samples_txt_fmt.format(caption="number of training samples",
-                                              value=training_samples_size))
-    samples_txt.append(samples_txt_fmt.format(caption="number of test samples",
-                                              value=test_samples_size))
-    samples_txt.append(samples_txt_fmt.format(caption="features size",
-                                              value=model.features_size))
-    samples_txt.append(samples_txt_fmt.format(caption="training iterations",
-                                              value=training_iterations))
-    model_txt_fmt = "{caption:<24}:{value:>12}"
-    model_txt = []
-    model_txt.append(model_txt_fmt.format(caption="map rows",
-                                          value=model.map_rows))
-    model_txt.append(model_txt_fmt.format(caption="map cols",
-                                          value=model.map_cols))
-    model_txt.append(model_txt_fmt.format(caption="max neighborhod size",
-                                          value=model.max_nbh_size))
-    model_txt.append(model_txt_fmt.format(caption="neighborhood step size",
-                                          value=model.nbh_step_size))
-    model_txt.append(model_txt_fmt.format(caption="random seed",
-                                          value=model.random_seed))
-    ax = plt.subplot2grid((plt_rows, plt_cols), (0, 0), colspan=fig_cols*(fig_width+legend_width))
-    out_plt = model.visualize_txt(ax, samples_txt, model_txt)
+    iterations = int(ceil(float(model.max_nbh_size)/model.nbh_step_size))
+    col1_txt_fmt = "{caption:<28}:{value:>7}"
+    col1_txt = []
+    col1_txt.append(col1_txt_fmt.format(caption="number of training samples",
+                                        value=training_samples_size))
+    col1_txt.append(col1_txt_fmt.format(caption="number of test samples",
+                                        value=test_samples_size))
+    col1_txt.append(col1_txt_fmt.format(caption="features size",
+                                        value=model.features_size))
+    col1_txt.append(col1_txt_fmt.format(caption="training iterations",
+                                        value=iterations))
+    col2_txt_fmt = "{caption:<24}:{value:>12}"
+    col2_txt = []
+    col2_txt.append(col2_txt_fmt.format(caption="map rows",
+                                        value=model.map_rows))
+    col2_txt.append(col2_txt_fmt.format(caption="map cols",
+                                        value=model.map_cols))
+    col2_txt.append(col2_txt_fmt.format(caption="max neighborhod size",
+                                        value=model.max_nbh_size))
+    col2_txt.append(col2_txt_fmt.format(caption="neighborhood step size",
+                                        value=model.nbh_step_size))
+    col2_txt.append(col2_txt_fmt.format(caption="random seed",
+                                        value=model.random_seed))
+    ax = plt.subplot2grid((plt_rows, plt_cols),
+                          (0, 0),
+                          colspan=fig_cols*(fig_width+legend_width))
+    out_plt = model.visualize_txt(ax, col1_txt, col2_txt)
     plt.tight_layout()
     summary_pdf_file_name = os.path.join(out_folder, 'summary.pdf')
     fig.savefig(summary_pdf_file_name, bbox_inches='tight', pad_inches=0.1)
     return {"summary file": summary_pdf_file_name,
-            "terminal file": out_terminal,
+            "terminal file": out_term,
             }

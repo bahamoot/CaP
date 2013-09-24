@@ -2,8 +2,6 @@ import numpy as np
 import math
 import sys
 import os
-import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
 from cap.template import CaPBase
 from cap.settings import DFLT_SEED
 from cap.settings import DFLT_MAP_SIZE
@@ -17,7 +15,6 @@ from cap.settings import TYPE_TEST_SAMPLE
 from collections import defaultdict
 from collections import OrderedDict
 from random import randint
-from matplotlib.backends.backend_pdf import PdfPages
 
 
 DFLT_TRAINING_CLASS_STYLE = 'kp'
@@ -141,8 +138,8 @@ class VisualizeLegend(CaPBase):
                  random_seed=DFLT_SEED,
                  ):
         CaPBase.__init__(self)
-        self.legend_txt = None
-        self.marker_size = None
+        self.lg_txt = None
+        self.mk_size = None
         self.style = None
         self.__hide = hide
         self.x_coords = []
@@ -155,8 +152,8 @@ class VisualizeLegend(CaPBase):
         return '<' + self.__class__.__name__ + ' Object> ' + str(self.get_raw_repr())
 
     def get_raw_repr(self):
-        return {"legend text": self.legend_txt,
-                "marker size": self.marker_size,
+        return {"legend text": self.lg_txt,
+                "marker size": self.mk_size,
                 "style": self.style,
                 "hide": self.hide,
                 "x coordinates": self.x_coords,
@@ -239,7 +236,7 @@ class SOM2D(SOMBase):
         winner, diff = self.calc_similarity(features)
         return self.to_grid(winner)
 
-    def __get_terminal_grid_coord(self, features):
+    def __get_term_grid_coord(self, features):
         return self.__get_grid_coord(features)
 
     def __to_plt(self, row, col):
@@ -257,13 +254,13 @@ class SOM2D(SOMBase):
                              ):
         for sample in training_samples:
             if sample.term_coord is None:
-                row, col = self.__get_terminal_grid_coord(sample.features)
+                row, col = self.__get_term_grid_coord(sample.features)
                 sample.set_term_coord(row=row, col=col)
                 plt_row, plt_col = self.__to_plt(row, col)
                 sample.set_plt_coord(row=plt_row, col=plt_col)
         for sample in test_samples:
             if sample.term_coord is None:
-                row, col = self.__get_terminal_grid_coord(sample.features)
+                row, col = self.__get_term_grid_coord(sample.features)
                 sample.set_term_coord(row=row, col=col)
                 plt_row, plt_col = self.__to_plt(row, col)
                 sample.set_plt_coord(row=plt_row, col=plt_col)
@@ -333,7 +330,7 @@ class SOM2D(SOMBase):
                 )
         return ax
 
-    def visualize_terminal(self,
+    def visualize_term(self,
                            txt_width=DFLT_TERMINAL_STR_WIDTH,
                            out_folder=None,
                            ):
@@ -362,7 +359,11 @@ class SOM2D(SOMBase):
                               txt_size=6,
                               ):
         sm = self.__sm
-        bbox_props = dict(boxstyle="round", fc="w", ec="0.5", alpha=0.9, linewidth=0.1)
+        bbox_props = dict(boxstyle="round",
+                          fc="w",
+                          ec="0.5",
+                          alpha=0.9,
+                          linewidth=0.1)
         for y in xrange(len(sm)):
             for x in xrange(len(sm[y])):
                 if len(sm[y][x]) > 0:
@@ -381,25 +382,25 @@ class SOM2D(SOMBase):
     def visualize_plt(self,
                       ax,
                       group_name,
-                      class_plt_style,
-                      marker_size=3,
+                      plt_style,
+                      mk_size=3,
                       txt_size=6,
                       ):
         sm = self.__sm
         #generate default legend
-        legend_list = defaultdict(VisualizeLegend)
-        for sample_class in class_plt_style:
-            legend_list[sample_class].legend_txt = sample_class
-            legend_list[sample_class].marker_size = marker_size
-            legend_list[sample_class].style = class_plt_style[sample_class]
-        legend_list['unknown'].legend_txt = 'unknown'
-        legend_list['unknown'].marker_size = marker_size
-        legend_list['unknown'].style = DFLT_TRAINING_CLASS_STYLE
-        legend_list['test data'].legend_txt = 'test data'
-        legend_list['test data'].marker_size = marker_size
-        legend_list['test data'].style = DFLT_TEST_CLASS_STYLE
-        class_plt_style['unknown'] = DFLT_TRAINING_CLASS_STYLE
-        class_plt_style['test data'] = DFLT_TEST_CLASS_STYLE
+        lg_list = defaultdict(VisualizeLegend)
+        for sample_class in plt_style:
+            lg_list[sample_class].lg_txt = sample_class
+            lg_list[sample_class].mk_size = mk_size
+            lg_list[sample_class].style = plt_style[sample_class]
+        lg_list['unknown'].lg_txt = 'unknown'
+        lg_list['unknown'].mk_size = mk_size
+        lg_list['unknown'].style = DFLT_TRAINING_CLASS_STYLE
+        lg_list['test data'].lg_txt = 'test data'
+        lg_list['test data'].mk_size = mk_size
+        lg_list['test data'].style = DFLT_TEST_CLASS_STYLE
+        plt_style['unknown'] = DFLT_TRAINING_CLASS_STYLE
+        plt_style['test data'] = DFLT_TEST_CLASS_STYLE
         #count class frequency for each xy and generate new legend if any
         for y in xrange(len(sm)):
             for x in xrange(len(sm[y])):
@@ -408,7 +409,7 @@ class SOM2D(SOMBase):
                 for sample in sm[y][x]:
                     if sample.sample_type == TYPE_TRAINING_SAMPLE:
                         sample_class = sample.classes[group_name]
-                        if sample_class in class_plt_style:
+                        if sample_class in plt_style:
                             sample_class_count[sample_class] += 1
                         else:
                             sample_class_count['unknown'] += 1
@@ -419,35 +420,35 @@ class SOM2D(SOMBase):
                     #generate legend key
                     sample_count = sample_class_count[sample_class]
                     if sample_count == 1:
-                        legend_key = sample_class
+                        lg_key = sample_class
                     else:
-                        legend_key = sample_class + ' (' + str(sample_count) + ')'
+                        lg_key = sample_class + ' (' + str(sample_count) + ')'
                     #look up, add any, and add coordinate to the key
-                    if legend_key not in legend_list:
-                        legend_list[legend_key].legend_txt = sample_class
-                        legend_list[legend_key].marker_size = marker_size + (sample_count-1)*2
-                        legend_list[legend_key].style = class_plt_style[sample_class]
-                    legend_list[legend_key].x_coords.append(x)
-                    legend_list[legend_key].y_coords.append(y)
-        legend_list = {x:legend_list[x] for x in legend_list if len(legend_list[x].x_coords)!=0}
-        for legend_key in legend_list:
-            if len(legend_list[legend_key].x_coords) == 0:
-                del legend_list[legend_key]
-        for legend_key in legend_list:
-            p = ax.plot(legend_list[legend_key].x_coords,
-                        legend_list[legend_key].y_coords,
-                        legend_list[legend_key].style,
-                        label=legend_key,
-                        markersize=legend_list[legend_key].marker_size,
+                    if lg_key not in lg_list:
+                        lg_list[lg_key].lg_txt = sample_class
+                        lg_list[lg_key].mk_size = mk_size + (sample_count-1)*2
+                        lg_list[lg_key].style = plt_style[sample_class]
+                    lg_list[lg_key].x_coords.append(x)
+                    lg_list[lg_key].y_coords.append(y)
+        lg_list = {x:lg_list[x] for x in lg_list if len(lg_list[x].x_coords)!=0}
+        for lg_key in lg_list:
+            if len(lg_list[lg_key].x_coords) == 0:
+                del lg_list[lg_key]
+        for lg_key in lg_list:
+            p = ax.plot(lg_list[lg_key].x_coords,
+                        lg_list[lg_key].y_coords,
+                        lg_list[lg_key].style,
+                        label=lg_key,
+                        markersize=lg_list[lg_key].mk_size,
                         )
-            legend_list[legend_key].plot = p
+            lg_list[lg_key].plot = p
         ax.set_ylim([0, self.map_rows+1])
         ax.set_xlim([0, self.map_cols+1])
         ax.set_title(group_name, fontsize=txt_size)
         txt_props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-        legend_list=OrderedDict(sorted(legend_list.items(), key=lambda x: x[0]))
-        ax.legend(map(lambda x: legend_list[x].plot[0], legend_list),
-                  legend_list,
+        lg_list=OrderedDict(sorted(lg_list.items(), key=lambda x: x[0]))
+        ax.legend(map(lambda x: lg_list[x].plot[0], lg_list),
+                  lg_list,
                   bbox_to_anchor=(1., 1.02),
                   loc=2,
                   ncol=1,
