@@ -29,7 +29,7 @@ DEMO_TEST_CLASSES = os.path.join(ROOT_DEMO_DATA,
                                  'demo_test_classes.txt')
 DEMO_OUT_DIR = '/home/jessada/development/scilifelab/projects/CaP/out/tmp/'
 PARADIGM_WEIGHT_STEP_SIZE = 0.2
-PARADIGM_NBH_STEP_SIZE = 0.24
+PARADIGM_NBH_STEP_SIZE = 4
 PARADIGM_MAX_NBH_SIZE = 15
 PARADIGM_MAP_ROWS = 20
 PARADIGM_MAP_COLS = 20
@@ -45,14 +45,14 @@ def demo_som2d_paradigm():
                              'txt_width': 15,
                              })
     visualize_params.append({'type': 'scatter',
-                             'group_name': 'MSI_status',
+                             'prop_name': 'MSI_status',
                              'plt_style': {'MSI-H': 'r^',
                                            'MSI-L': 'b*',
                                            'MSS': 'mo',
                                            },
                              })
     visualize_params.append({'type': 'scatter',
-                             'group_name': 'methylation_subtype',
+                             'prop_name': 'methylation_subtype',
                              'plt_style': {'CIMP.H': 'r^',
                                            'CIMP.L': 'b*',
                                            'Cluster3': 'gv',
@@ -60,18 +60,20 @@ def demo_som2d_paradigm():
                                            },
                              })
     visualize_params.append({'type': 'contour',
-                             'group_name': 'days_to_last_known_alive',
-                             'min_cutoff': 300,
+                             'prop_name': 'days_to_last_known_alive',
+                             'min_cutoff': 400,
                              'max_cutoff': 720,
                              })
     visualize_params.append({'type': 'debugging contour filter',
-                             'group_name': 'days_to_last_known_alive',
+                             'prop_name': 'days_to_last_known_alive',
+                             'min_cutoff': 400,
+                             'max_cutoff': 720,
                              })
     visualize_params.append({'type': 'debugging contour text',
-                             'group_name': 'days_to_last_known_alive',
+                             'prop_name': 'days_to_last_known_alive',
                              })
 #    visualize_params.append({'type': 'scatter',
-#                             'group_name': 'tumor_stage',
+#                             'prop_name': 'tumor_stage',
 #                             'plt_style': {'Stage I': 'r^',
 #                                           'Stage IIA': 'b*',
 #                                           'Stage IIB': 'yD',
@@ -82,7 +84,7 @@ def demo_som2d_paradigm():
 #                                           },
 #                             })
 #    visualize_params.append({'type': 'scatter',
-#                             'group_name': 'anatomic_organ_subdivision',
+#                             'prop_name': 'anatomic_organ_subdivision',
 #                             'plt_style': {'Ascending Colon': 'r^',
 #                                           'Cecum': 'b*',
 #                                           'Descending Colon': 'yD',
@@ -94,7 +96,7 @@ def demo_som2d_paradigm():
 #                                           },
 #                             })
 #    visualize_params.append({'type': 'scatter',
-#                             'group_name': 'tumor_site',
+#                             'prop_name': 'tumor_site',
 #                             'plt_style': {'1 - right colon': 'r^',
 #                                           '2 - transverse colon': 'b*',
 #                                           '3 - left colon': 'mo',
@@ -198,19 +200,18 @@ def som2d(training_samples,
             model.visualize_sample_name(ax)
         elif params['type'] == 'scatter':
             out_plt = model.visualize_plt(ax,
-                                          params['group_name'],
+                                          params['prop_name'],
                                           params['plt_style'],
                                           )
         elif params['type'] == 'debugging contour filter':
             out_plt = model.debugging_contour_filter(ax,
-                                                     params['group_name'],
+                                                     params['prop_name'],
+                                                     min_cutoff=params['min_cutoff'],
+                                                     max_cutoff=params['max_cutoff'],
                                                      )
         elif params['type'] == 'contour':
-            #ax = plt.subplot2grid((plt_rows, plt_cols),
-            #                      (fig_row, fig_col),
-            #                      )
             out_plt = model.visualize_contour(ax,
-                                              params['group_name'],
+                                              params['prop_name'],
                                               min_cutoff=params['min_cutoff'],
                                               max_cutoff=params['max_cutoff'],
                                               )
@@ -219,11 +220,9 @@ def som2d(training_samples,
                                       rowspan=fig_height,
                                       )
             plt.colorbar(out_plt, cax=cbaxes)
-            #plt.colorbar(out_plt)
-            #plt.colorbar.make_axes(out_plt, location='right')
         elif params['type'] == 'debugging contour text':
             out_plt = model.debugging_contour_txt(ax,
-                                                  params['group_name'],
+                                                  params['prop_name'],
                                                   )
         idx += 1
     #plot training attributes
