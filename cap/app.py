@@ -29,10 +29,10 @@ DEMO_TEST_CLASSES = os.path.join(ROOT_DEMO_DATA,
                                  'demo_test_classes.txt')
 DEMO_OUT_DIR = '/home/jessada/development/scilifelab/projects/CaP/out/tmp/'
 PARADIGM_WEIGHT_STEP_SIZE = 0.2
-PARADIGM_NBH_STEP_SIZE = 3
-PARADIGM_MAX_NBH_SIZE = 5
-PARADIGM_MAP_ROWS = 10
-PARADIGM_MAP_COLS = 10
+PARADIGM_NBH_STEP_SIZE = 0.24
+PARADIGM_MAX_NBH_SIZE = 15
+PARADIGM_MAP_ROWS = 20
+PARADIGM_MAP_COLS = 20
 PARADIGM_RANDOM_SEED = None
 
 def get_time_stamp():
@@ -59,37 +59,48 @@ def demo_som2d_paradigm():
                                            'Cluster4': 'mo',
                                            },
                              })
-    visualize_params.append({'type': 'scatter',
-                             'group_name': 'tumor_stage',
-                             'plt_style': {'Stage I': 'r^',
-                                           'Stage IIA': 'b*',
-                                           'Stage IIB': 'yD',
-                                           'Stage IIIA': 'mH',
-                                           'Stage IIIB': 'co',
-                                           'Stage IIIC': 'gv',
-                                           'Stage IV': 'mx',
-                                           },
+    visualize_params.append({'type': 'contour',
+                             'group_name': 'days_to_last_known_alive',
+                             'min_cutoff': 300,
+                             'max_cutoff': 720,
                              })
-    visualize_params.append({'type': 'scatter',
-                             'group_name': 'anatomic_organ_subdivision',
-                             'plt_style': {'Ascending Colon': 'r^',
-                                           'Cecum': 'b*',
-                                           'Descending Colon': 'yD',
-                                           'Hepatic Flexure': 'mH',
-                                           'Rectosigmoid Junction': 'co',
-                                           'Rectum': 'gv',
-                                           'Sigmoid Colon': 'mx',
-                                           'Transverse Colon': 'bp',
-                                           },
+    visualize_params.append({'type': 'debugging contour filter',
+                             'group_name': 'days_to_last_known_alive',
                              })
-    visualize_params.append({'type': 'scatter',
-                             'group_name': 'tumor_site',
-                             'plt_style': {'1 - right colon': 'r^',
-                                           '2 - transverse colon': 'b*',
-                                           '3 - left colon': 'mo',
-                                           '4 - rectum': 'gv',
-                                           },
+    visualize_params.append({'type': 'debugging contour text',
+                             'group_name': 'days_to_last_known_alive',
                              })
+#    visualize_params.append({'type': 'scatter',
+#                             'group_name': 'tumor_stage',
+#                             'plt_style': {'Stage I': 'r^',
+#                                           'Stage IIA': 'b*',
+#                                           'Stage IIB': 'yD',
+#                                           'Stage IIIA': 'mH',
+#                                           'Stage IIIB': 'co',
+#                                           'Stage IIIC': 'gv',
+#                                           'Stage IV': 'mx',
+#                                           },
+#                             })
+#    visualize_params.append({'type': 'scatter',
+#                             'group_name': 'anatomic_organ_subdivision',
+#                             'plt_style': {'Ascending Colon': 'r^',
+#                                           'Cecum': 'b*',
+#                                           'Descending Colon': 'yD',
+#                                           'Hepatic Flexure': 'mH',
+#                                           'Rectosigmoid Junction': 'co',
+#                                           'Rectum': 'gv',
+#                                           'Sigmoid Colon': 'mx',
+#                                           'Transverse Colon': 'bp',
+#                                           },
+#                             })
+#    visualize_params.append({'type': 'scatter',
+#                             'group_name': 'tumor_site',
+#                             'plt_style': {'1 - right colon': 'r^',
+#                                           '2 - transverse colon': 'b*',
+#                                           '3 - left colon': 'mo',
+#                                           '4 - rectum': 'gv',
+#                                           },
+#                             })
     out = som2d_paradigm(DEMO_TRAINING_FEATURES,
                          DEMO_TRAINING_CLASSES,
                          test_features_file=DEMO_TEST_FEATURES,
@@ -176,7 +187,8 @@ def som2d(training_samples,
         ax = plt.subplot2grid((plt_rows, plt_cols),
                               (fig_row, fig_col),
                               colspan=fig_width,
-                              rowspan=fig_height)
+                              rowspan=fig_height,
+                              )
         if params['type'] == 'terminal':
             out_file = os.path.join(out_folder,
                                     'terminal_out.txt')
@@ -189,6 +201,30 @@ def som2d(training_samples,
                                           params['group_name'],
                                           params['plt_style'],
                                           )
+        elif params['type'] == 'debugging contour filter':
+            out_plt = model.debugging_contour_filter(ax,
+                                                     params['group_name'],
+                                                     )
+        elif params['type'] == 'contour':
+            #ax = plt.subplot2grid((plt_rows, plt_cols),
+            #                      (fig_row, fig_col),
+            #                      )
+            out_plt = model.visualize_contour(ax,
+                                              params['group_name'],
+                                              min_cutoff=params['min_cutoff'],
+                                              max_cutoff=params['max_cutoff'],
+                                              )
+            cbaxes = plt.subplot2grid((plt_rows, plt_cols*2),
+                                      (fig_row, (fig_col+2)*2),
+                                      rowspan=fig_height,
+                                      )
+            plt.colorbar(out_plt, cax=cbaxes)
+            #plt.colorbar(out_plt)
+            #plt.colorbar.make_axes(out_plt, location='right')
+        elif params['type'] == 'debugging contour text':
+            out_plt = model.debugging_contour_txt(ax,
+                                                  params['group_name'],
+                                                  )
         idx += 1
     #plot training attributes
     training_samples_size = len(training_samples)

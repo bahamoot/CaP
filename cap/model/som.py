@@ -2,6 +2,7 @@ import numpy as np
 import math
 import sys
 import os
+import matplotlib as mpl
 from cap.template import CaPBase
 from cap.settings import DFLT_SEED
 from cap.settings import DFLT_MAP_SIZE
@@ -375,6 +376,168 @@ class SOM2D(SOMBase):
         ax.set_ylim([0, self.map_rows+1])
         ax.set_title("samples name", fontsize=txt_size)
         return ax
+
+    def debugging_contour_txt(self,
+                              ax,
+                              group_name,
+                              txt_size=6,
+                              ):
+        sm = self.__sm
+        bbox_props = dict(boxstyle="round",
+                          fc="w",
+                          ec="0.5",
+                          alpha=0.6,
+                          linewidth=0.1)
+        for y in xrange(len(sm)):
+            for x in xrange(len(sm[y])):
+                out_items = filter(lambda x: x.classes is not None, sm[y][x])
+                if len(out_items) > 0:
+                    ax.text(x,
+                            y,
+                            "\n".join(map(lambda x: x.classes[group_name],
+                                          out_items)),
+                            ha="center",
+                            va="center",
+                            size=2,
+                            bbox=bbox_props)
+        ax.set_xlim([0, self.map_cols+1])
+        ax.set_ylim([0, self.map_rows+1])
+        title_txt = []
+        title_txt.append("debugging content of")
+        title_txt.append("'"+group_name+"'")
+        ax.set_title("\n".join(title_txt), fontsize=txt_size)
+        return ax
+
+    def debugging_contour_filter(self,
+                                 ax,
+                                 group_name,
+                                 min_cutoff=300,
+                                 max_cutoff=720,
+                                 txt_size=6,
+                                 ):
+        x_range = np.arange(0, self.map_cols+2, 1)
+        y_range = np.arange(0, self.map_rows+2, 1)
+        X, Y = np.meshgrid(x_range, y_range)
+        Z = np.zeros((y_range.shape[0], x_range.shape[0]))
+        sm = self.__sm
+        bbox_props = dict(boxstyle="round",
+                          fc="w",
+                          ec="0.5",
+                          alpha=0.6,
+                          linewidth=0.1)
+        for y in xrange(len(sm)):
+            for x in xrange(len(sm[y])):
+                out_items = filter(lambda x: x.classes is not None,
+                                   sm[y][x])
+                out_items = filter(lambda x: int(x.classes[group_name])>min_cutoff,
+                                   out_items)
+                out_items = map(lambda x: int(x.classes[group_name]),
+                                out_items)
+                if len(out_items) > 0:
+                    ax.text(x,
+                            y,
+                            reduce(lambda a, b: a+b,
+                                   out_items)/len(out_items),
+                            ha="center",
+                            va="center",
+                            size=2,
+                            bbox=bbox_props)
+        ax.set_xlim([0, self.map_cols+1])
+        ax.set_ylim([0, self.map_rows+1])
+        title_txt = []
+        title_txt.append("debugging filter+average")
+        title_txt.append("'"+group_name+"'>"+str(min_cutoff))
+        ax.set_title("\n".join(title_txt), fontsize=txt_size)
+        return ax
+
+    def visualize_contour(self,
+                          ax,
+                          group_name,
+                          min_cutoff=300,
+                          max_cutoff=720,
+                          color_level_step_size=5,
+                          txt_size=6,
+                          ):
+        #initailize grid
+        x_range = np.arange(0, self.map_cols+2, 1)
+        y_range = np.arange(0, self.map_rows+2, 1)
+        X, Y = np.meshgrid(x_range, y_range)
+        Z = np.zeros((y_range.shape[0], x_range.shape[0]))
+        sm = self.__sm
+#        bbox_props = dict(boxstyle="round",
+#                          fc="w",
+#                          ec="0.5",
+#                          alpha=0.6,
+#                          linewidth=0.1)
+        #map informative values to the grid
+        for y in xrange(len(sm)):
+            for x in xrange(len(sm[y])):
+                out_items = filter(lambda x: x.classes is not None,
+                                   sm[y][x])
+                out_items = filter(lambda x: int(x.classes[group_name])>min_cutoff,
+                                   out_items)
+                out_items = map(lambda x: int(x.classes[group_name]),
+                                out_items)
+                if len(out_items) > 0:
+                    Z[y][x] = reduce(lambda a, b: a+b,
+                                     out_items)/len(out_items)
+        min_Z = abs(Z).min()
+        max_Z = abs(Z).max()
+        levels = np.append(np.array([0]),
+                           np.arange(min_cutoff,
+                                     max_Z+(max_Z-min_cutoff)*0.15,
+                                     color_level_step_size,
+                                     ),
+                           )
+        norm = mpl.colors.Normalize(vmax=max_Z, vmin=min_Z)
+        cmap = mpl.cm.PRGn
+        c = ax.contourf(X, Y, Z, levels,
+                        cmap=mpl.cm.get_cmap(cmap, len(levels)-1),
+                        norm=norm,
+                        )
+        ax.set_xlim([0, self.map_cols+1])
+        ax.set_ylim([0, self.map_rows+1])
+        ax.set_title(group_name, fontsize=txt_size)
+        return c
+
+#        Z[0][3] = 423
+#        Z[1][2] = 680
+#        Z[1][3] = 595
+#        Z[2][2] = 680
+#        Z[3][2] = 560
+#        Z[4][1] = 560
+#        Z[8][8] = 800
+#        Z[8][7] = 690
+#        Z[7][7] = 1290
+#        Z[7][8] = 690
+#        levels = np.array([0, 400, 420, 440, 460, 480, 500, 520, 540, 560, 580, 600, 620, 640, 660, 680, 700])
+#        my_levels = np.append(np.array([0]),
+#                              np.arange(min_cutoff, max_cutoff, 5),
+#                              )
+#        my_levels = np.append(my_levels,
+#                              np.array([abs(Z).max()]),
+#                              )
+##        cmap = mpl.cm.cool
+##        cmap = mpl.colors.ListedColormap([[0., .4, 1.], [0., .8, 1.],
+##                [1., .8, 0.], [1., .4, 0.]])
+##        cmap.set_over((1., 0., 0.))
+##        cmap.set_under((0., 0., 1.))
+##        norm = mpl.colors.Normalize(vmax=abs(Z).max(), vmin=abs(Z).min())
+#        norm = mpl.cm.colors.Normalize(vmax=max_cutoff, vmin=abs(Z).min())
+#        cmap = mpl.cm.PRGn
+#        c = ax.contourf(X, Y, Z, my_levels,
+#                    cmap=mpl.cm.get_cmap(cmap, len(levels)-1),
+#                    norm=norm,
+#                    )
+##        c = ax.imshow(Z, vmin=0, vmax=800)
+##        plt.title('contourf with levels')
+##        cbaxes = plt.axes(ax, [0.8, -1.1, 0.03, 0.8]) 
+##        plt.colorbar(c, cax=cbaxes)
+#        #plt.colorbar(c, anchor=[3.0,500.5])
+##        plt.show()
+##        plt.colorbar(c)
+#        return c
+##        return ax
 
     def visualize_plt(self,
                       ax,
