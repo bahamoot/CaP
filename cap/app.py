@@ -167,65 +167,10 @@ def som2d(training_samples,
     #train and load sample for visualize
     model.train(training_samples)
     model.load_visualize_samples(training_samples, test_samples)
-
-    #generate summary pdf report
     pdf_font = {'family' : 'monospace',
                 'size'   : 3}
     matplotlib.rc('font', **pdf_font)
-    fig_rows = 2
-    fig_cols = 3
-    legend_width = 1
-    description_height = 1
-    fig_width = 2
-    fig_height = 2
-    plt_rows = fig_rows*fig_height + description_height
-    plt_cols = (fig_width+legend_width) * fig_cols
-    fig = plt.figure()
-    idx = 0
-    #plot figures
-    for params in visualize_params:
-        fig_col = (idx%fig_cols) * (fig_width+legend_width)
-        fig_row = ((idx//fig_cols)*fig_height) + description_height
-        ax = plt.subplot2grid((plt_rows, plt_cols),
-                              (fig_row, fig_col),
-                              colspan=fig_width,
-                              rowspan=fig_height,
-                              )
-        if params['type'] == 'terminal':
-            out_file = os.path.join(out_folder,
-                                    'terminal_out.txt')
-            out_term = model.visualize_term(txt_width=params['txt_width'],
-                                            out_file=out_file,
-                                            )
-            model.visualize_sample_name(ax)
-        elif params['type'] == 'scatter':
-            out_plt = model.visualize_plt(ax,
-                                          params['prop_name'],
-                                          params['plt_style'],
-                                          )
-        elif params['type'] == 'debugging contour filter':
-            out_plt = model.debugging_contour_filter(ax,
-                                                     params['prop_name'],
-                                                     min_cutoff=params['min_cutoff'],
-                                                     max_cutoff=params['max_cutoff'],
-                                                     )
-        elif params['type'] == 'contour':
-            out_plt = model.visualize_contour(ax,
-                                              params['prop_name'],
-                                              min_cutoff=params['min_cutoff'],
-                                              max_cutoff=params['max_cutoff'],
-                                              )
-            cbaxes = plt.subplot2grid((plt_rows, plt_cols*2),
-                                      (fig_row, (fig_col+2)*2),
-                                      rowspan=fig_height,
-                                      )
-            plt.colorbar(out_plt, cax=cbaxes)
-        elif params['type'] == 'debugging contour text':
-            out_plt = model.debugging_contour_txt(ax,
-                                                  params['prop_name'],
-                                                  )
-        idx += 1
-    #plot training attributes
+    #prepare text to visualize training attributes
     training_samples_size = len(training_samples)
     test_samples_size = len(test_samples)
     iterations = int(ceil(float(model.max_nbh_size)/model.nbh_step_size))
@@ -251,13 +196,158 @@ def som2d(training_samples,
                                         value=model.nbh_step_size))
     col2_txt.append(col2_txt_fmt.format(caption="random seed",
                                         value=model.random_seed))
+
+    #generate individual reports
+    fig_rows = 1
+    fig_cols = 1
+    legend_width = 1
+    description_height = 1
+    fig_width = 2
+    fig_height = 2
+    plt_rows = fig_rows*fig_height + description_height
+    plt_cols = (fig_width+legend_width) * fig_cols
+    plt_txt_size = int(ceil(12/fig_rows))
+    desc_txt_size = 12 - fig_rows
+    fig = plt.figure()
+    eps_file_names = []
+    idx = 0
+    for params in visualize_params:
+        fig_col = (idx%fig_cols) * (fig_width+legend_width)
+        fig_row = ((idx//fig_cols)*fig_height) + description_height
+        plt.subplot2grid((1, 1), (0, 0))
+        ax = plt.subplot2grid((plt_rows, plt_cols),
+                              (fig_row, fig_col),
+                              colspan=fig_width,
+                              rowspan=fig_height,
+                              )
+        if params['type'] == 'terminal':
+            out_file = os.path.join(out_folder,
+                                    'terminal_out.txt')
+            out_term = model.visualize_term(txt_width=params['txt_width'],
+                                            out_file=out_file,
+                                            )
+            model.visualize_sample_name(ax, txt_size=plt_txt_size)
+            eps_file_name = os.path.join(out_folder,
+                                         'sample_names.eps')
+        elif params['type'] == 'scatter':
+            prop_name = params['prop_name']
+            model.visualize_plt(ax,
+                                prop_name,
+                                params['plt_style'],
+                                txt_size=plt_txt_size,
+                                )
+            eps_file_name = os.path.join(out_folder,
+                                         'scatter_'+prop_name+'.eps')
+        elif params['type'] == 'debugging contour text':
+            prop_name = params['prop_name']
+            model.debugging_contour_txt(ax,
+                                        prop_name,
+                                        txt_size=plt_txt_size,
+                                        )
+            eps_file_name = os.path.join(out_folder,
+                                         'dbg_contour_'+prop_name+'.eps')
+        elif params['type'] == 'debugging contour filter':
+            prop_name = params['prop_name']
+            model.debugging_contour_filter(ax,
+                                           prop_name,
+                                           min_cutoff=params['min_cutoff'],
+                                           max_cutoff=params['max_cutoff'],
+                                           txt_size=plt_txt_size,
+                                           )
+            eps_file_name = os.path.join(out_folder,
+                                         'dbg_contour_filter_'+prop_name+'.eps')
+        elif params['type'] == 'contour':
+            prop_name = params['prop_name']
+            out_plt = model.visualize_contour(ax,
+                                              prop_name,
+                                              min_cutoff=params['min_cutoff'],
+                                              max_cutoff=params['max_cutoff'],
+                                              txt_size=plt_txt_size,
+                                              )
+            cbaxes = plt.subplot2grid((plt_rows, plt_cols*2),
+                                      (fig_row, (fig_col+2)*2),
+                                      rowspan=fig_height,
+                                      )
+            plt.colorbar(out_plt, cax=cbaxes)
+            eps_file_name = os.path.join(out_folder,
+                                         'contour_'+prop_name+'.eps')
+        else:
+            continue
+        ax = plt.subplot2grid((plt_rows, plt_cols),
+                              (0, 0),
+                              colspan=fig_cols*(fig_width+legend_width))
+        model.visualize_txt(ax, col1_txt, col2_txt, txt_size=desc_txt_size)
+        fig.savefig(eps_file_name, bbox_inches='tight', pad_inches=0.1)
+        eps_file_names.append(eps_file_name)
+
+    #generate summary pdf report
+    fig_rows = 2
+    fig_cols = 3
+    legend_width = 1
+    description_height = 1
+    fig_width = 2
+    fig_height = 2
+    plt_rows = fig_rows*fig_height + description_height
+    plt_cols = (fig_width+legend_width) * fig_cols
+    plt_txt_size = int(ceil(12/fig_rows))
+    desc_txt_size = 12 - fig_rows
+    fig = plt.figure()
+    idx = 0
+    #plot figures
+    for params in visualize_params:
+        fig_col = (idx%fig_cols) * (fig_width+legend_width)
+        fig_row = ((idx//fig_cols)*fig_height) + description_height
+        ax = plt.subplot2grid((plt_rows, plt_cols),
+                              (fig_row, fig_col),
+                              colspan=fig_width,
+                              rowspan=fig_height,
+                              )
+        if params['type'] == 'terminal':
+            out_file = os.path.join(out_folder,
+                                    'terminal_out.txt')
+            out_term = model.visualize_term(txt_width=params['txt_width'],
+                                            out_file=out_file,
+                                            )
+            model.visualize_sample_name(ax, txt_size=plt_txt_size)
+        elif params['type'] == 'scatter':
+            out_plt = model.visualize_plt(ax,
+                                          params['prop_name'],
+                                          params['plt_style'],
+                                          txt_size=plt_txt_size,
+                                          )
+        elif params['type'] == 'debugging contour filter':
+            out_plt = model.debugging_contour_filter(ax,
+                                                     params['prop_name'],
+                                                     min_cutoff=params['min_cutoff'],
+                                                     max_cutoff=params['max_cutoff'],
+                                                     txt_size=plt_txt_size,
+                                                     )
+        elif params['type'] == 'contour':
+            out_plt = model.visualize_contour(ax,
+                                              params['prop_name'],
+                                              min_cutoff=params['min_cutoff'],
+                                              max_cutoff=params['max_cutoff'],
+                                              txt_size=plt_txt_size,
+                                              )
+            cbaxes = plt.subplot2grid((plt_rows, plt_cols*2),
+                                      (fig_row, (fig_col+2)*2),
+                                      rowspan=fig_height,
+                                      )
+            plt.colorbar(out_plt, cax=cbaxes)
+        elif params['type'] == 'debugging contour text':
+            out_plt = model.debugging_contour_txt(ax,
+                                                  params['prop_name'],
+                                                  txt_size=plt_txt_size,
+                                                  )
+        idx += 1
     ax = plt.subplot2grid((plt_rows, plt_cols),
                           (0, 0),
                           colspan=fig_cols*(fig_width+legend_width))
-    out_plt = model.visualize_txt(ax, col1_txt, col2_txt)
+    out_plt = model.visualize_txt(ax, col1_txt, col2_txt, txt_size=desc_txt_size)
     plt.tight_layout()
     summary_pdf_file_name = os.path.join(out_folder, 'summary.pdf')
     fig.savefig(summary_pdf_file_name, bbox_inches='tight', pad_inches=0.1)
     return {"summary file": summary_pdf_file_name,
+            "eps reports": eps_file_names,
             "terminal file": out_term,
             }

@@ -21,6 +21,7 @@ from random import randint
 DFLT_TRAINING_CLASS_STYLE = 'kp'
 DFLT_TEST_CLASS_STYLE = 'k+'
 DFLT_TERMINAL_STR_WIDTH = 11
+DFLT_TXT_SIZE = 6
 
 class SOMBase(CaPBase):
     """ to automatically parse VCF data"""
@@ -296,6 +297,7 @@ class SOM2D(SOMBase):
                       ax,
                       col1_txt_list,
                       col2_txt_list,
+                      txt_size=DFLT_TXT_SIZE,
                       ):
         ax.axis('off')
         col1_rows = len(col1_txt_list)
@@ -326,6 +328,7 @@ class SOM2D(SOMBase):
                 fontsize=10,
                 horizontalalignment='center',
                 verticalalignment='top',
+                size=txt_size,
                 bbox=txt_props,
                 )
         return ax
@@ -354,7 +357,7 @@ class SOM2D(SOMBase):
 
     def visualize_sample_name(self,
                               ax,
-                              txt_size=6,
+                              txt_size=DFLT_TXT_SIZE,
                               ):
         sm = self.__sm
         bbox_props = dict(boxstyle="round",
@@ -380,7 +383,7 @@ class SOM2D(SOMBase):
     def debugging_contour_txt(self,
                               ax,
                               prop_name,
-                              txt_size=6,
+                              txt_size=DFLT_TXT_SIZE,
                               ):
         sm = self.__sm
         bbox_props = dict(boxstyle="round",
@@ -413,7 +416,7 @@ class SOM2D(SOMBase):
                                  prop_name,
                                  min_cutoff=300,
                                  max_cutoff=720,
-                                 txt_size=6,
+                                 txt_size=DFLT_TXT_SIZE,
                                  ):
         x_range = np.arange(0, self.map_cols+2, 1)
         y_range = np.arange(0, self.map_rows+2, 1)
@@ -456,7 +459,7 @@ class SOM2D(SOMBase):
                           min_cutoff=300,
                           max_cutoff=720,
                           color_level_step_size=5,
-                          txt_size=6,
+                          txt_size=DFLT_TXT_SIZE,
                           ):
         #initailize grid
         x_range = np.arange(0, self.map_cols+2, 1)
@@ -504,7 +507,7 @@ class SOM2D(SOMBase):
                       prop_name,
                       plt_style,
                       mk_size=3,
-                      txt_size=6,
+                      txt_size=DFLT_TXT_SIZE,
                       ):
         sm = self.__sm
         #generate default legend
