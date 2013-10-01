@@ -50,7 +50,7 @@ because they depend on each other.
 The trainer part is in model/som.py, which can be splitted into two layers,
 SOMBase and SOM2D. SOMBase is the core of the model. Most model data are
 stored at this layer. The training is also done at this layer. What is
-lack at this layer is that it's output into one dimensional matrix. So
+lack at this layer is that it output into one dimensional matrix. So
 come SOM2D. Its purpose is to output 2D result. SOM2D modifies
 neighborhood function (nbhs) so that it'll search for neighborhoods in
 2D direction.
