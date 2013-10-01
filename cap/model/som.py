@@ -11,15 +11,13 @@ from cap.settings import DFLT_NBH_STEP_SIZE
 from cap.settings import DFLT_MAX_NBH_SIZE
 from cap.settings import DFLT_MAP_ROWS
 from cap.settings import DFLT_MAP_COLS
-from cap.settings import TYPE_TRAINING_SAMPLE
-from cap.settings import TYPE_TEST_SAMPLE
 from collections import defaultdict
 from collections import OrderedDict
 from random import randint
+from cap.mylib import is_number
 
 
 DFLT_TRAINING_CLASS_STYLE = 'kp'
-DFLT_TEST_CLASS_STYLE = 'k+'
 DFLT_TERMINAL_STR_WIDTH = 11
 DFLT_TXT_SIZE = 6
 
@@ -250,27 +248,15 @@ class SOM2D(SOMBase):
         row, col = self.__get_grid_coord(features)
         return self.__to_plt(row, col)
 
-    def __calc_samples_coord(self,
-                             training_samples,
-                             test_samples=None,
-                             ):
-        for sample in training_samples:
-            if sample.term_coord is None:
-                row, col = self.__get_term_grid_coord(sample.features)
-                sample.set_term_coord(row=row, col=col)
-                plt_row, plt_col = self.__to_plt(row, col)
-                sample.set_plt_coord(row=plt_row, col=plt_col)
-        for sample in test_samples:
+    def __calc_samples_coord(self, samples):
+        for sample in samples:
             if sample.term_coord is None:
                 row, col = self.__get_term_grid_coord(sample.features)
                 sample.set_term_coord(row=row, col=col)
                 plt_row, plt_col = self.__to_plt(row, col)
                 sample.set_plt_coord(row=plt_row, col=plt_col)
 
-    def __generate_samples_matrix(self,
-                                  training_samples,
-                                  test_samples=[],
-                                  ):
+    def __generate_samples_matrix(self, samples):
         self.__sm = []
         for i in xrange(self.map_rows+1):
             samples_row = []
@@ -278,20 +264,14 @@ class SOM2D(SOMBase):
                 samples_row.append([])
             self.__sm.append(samples_row)
         #add samples to matrix
-        for sample in training_samples:
-            x, y = sample.plt_coord
-            self.__sm[y][x].append(sample)
-        for sample in test_samples:
+        for sample in samples:
             x, y = sample.plt_coord
             self.__sm[y][x].append(sample)
 
 
-    def load_visualize_samples(self,
-                               training_samples,
-                               test_samples=[],
-                               ):
-        self.__calc_samples_coord(training_samples, test_samples)
-        self.__generate_samples_matrix(training_samples, test_samples)
+    def load_visualize_samples(self, visualize_samples):
+        self.__calc_samples_coord(visualize_samples)
+        self.__generate_samples_matrix(visualize_samples)
 
     def visualize_txt(self,
                       ax,
@@ -430,12 +410,16 @@ class SOM2D(SOMBase):
                           linewidth=0.1)
         for y in xrange(len(sm)):
             for x in xrange(len(sm[y])):
+                #select only items that can be categorized
                 items = filter(lambda x: x.classes is not None,
-                                   sm[y][x])
-                items = filter(lambda x: int(x.classes[prop_name])>min_cutoff,
-                                   items)
+                               sm[y][x])
+                items = filter(lambda x: is_number(x.classes[prop_name]),
+                               items)
+                #remove items that are non-informative
                 items = map(lambda x: int(x.classes[prop_name]),
-                                items)
+                            items)
+                items = filter(lambda x: x > min_cutoff,
+                               items)
                 if len(items) > 0:
                     ax.text(x,
                             y,
@@ -472,13 +456,15 @@ class SOM2D(SOMBase):
             for x in xrange(len(sm[y])):
                 #select only items that can be categorized
                 items = filter(lambda x: x.classes is not None,
-                                   sm[y][x])
+                               sm[y][x])
+                items = filter(lambda x: is_number(x.classes[prop_name]),
+                               items)
                 #remove items that are non-informative
-                items = filter(lambda x: int(x.classes[prop_name])>min_cutoff,
-                                   items)
-                #cast items as integer
                 items = map(lambda x: int(x.classes[prop_name]),
-                                items)
+                            items)
+                items = filter(lambda x: x > min_cutoff,
+                               items)
+                #cast items as integer
                 if len(items) > 0:
                     Z[y][x] = reduce(lambda a, b: a+b,
                                      items)/len(items)
@@ -513,21 +499,17 @@ class SOM2D(SOMBase):
         #generate default legend
         lg_list = defaultdict(VisualizeLegend)
         plt_style['unknown'] = DFLT_TRAINING_CLASS_STYLE
-        plt_style['test data'] = DFLT_TEST_CLASS_STYLE
         #count class frequency for each xy and generate new legend if any
         for y in xrange(len(sm)):
             for x in xrange(len(sm[y])):
                 #count class frequency
                 sample_class_count = defaultdict(lambda: 0)
                 for sample in sm[y][x]:
-                    if sample.sample_type == TYPE_TRAINING_SAMPLE:
-                        sample_class = sample.classes[prop_name]
-                        if sample_class in plt_style:
-                            sample_class_count[sample_class] += 1
-                        else:
-                            sample_class_count['unknown'] += 1
-                    elif sample.sample_type == TYPE_TEST_SAMPLE:
-                        sample_class_count['test data'] += 1
+                    sample_class = sample.classes[prop_name]
+                    if sample_class in plt_style:
+                        sample_class_count[sample_class] += 1
+                    else:
+                        sample_class_count['unknown'] += 1
                 #generate new legend if any
                 for sample_class in sample_class_count:
                     #generate legend key

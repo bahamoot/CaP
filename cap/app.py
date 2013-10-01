@@ -29,11 +29,13 @@ DEMO_TEST_CLASSES = os.path.join(ROOT_DEMO_DATA,
                                  'demo_test_classes.txt')
 DEMO_OUT_DIR = '/home/jessada/development/scilifelab/projects/CaP/out/tmp/'
 PARADIGM_WEIGHT_STEP_SIZE = 0.2
-PARADIGM_NBH_STEP_SIZE = 4
+PARADIGM_NBH_STEP_SIZE = 6
 PARADIGM_MAX_NBH_SIZE = 15
 PARADIGM_MAP_ROWS = 20
 PARADIGM_MAP_COLS = 20
 PARADIGM_RANDOM_SEED = None
+
+TEST_DATA_PROP = 'test data'
 
 def get_time_stamp():
     return datetime.datetime.now().strftime("%Y%m%d%H%M%S")
@@ -49,6 +51,7 @@ def demo_som2d_paradigm():
                              'plt_style': {'MSI-H': 'r^',
                                            'MSI-L': 'b*',
                                            'MSS': 'mo',
+                                           TEST_DATA_PROP: 'k+',
                                            },
                              })
     visualize_params.append({'type': 'scatter',
@@ -57,6 +60,7 @@ def demo_som2d_paradigm():
                                            'CIMP.L': 'b*',
                                            'Cluster3': 'gv',
                                            'Cluster4': 'mo',
+                                           TEST_DATA_PROP: 'k+',
                                            },
                              })
     visualize_params.append({'type': 'contour',
@@ -131,6 +135,11 @@ def som2d_paradigm(training_features_file,
     #shorten training samples name
     for training_sample in training_samples:
         training_sample.name = training_sample.name.replace("TCGA-", "")
+    #setup test samples classes
+    for test_sample in test_samples:
+        for prop_name in training_samples[0].classes:
+            test_sample.classes[prop_name] = TEST_DATA_PROP
+    #call SOM2D
     return som2d(training_samples,
                  test_samples,
                  visualize_params=visualize_params,
@@ -166,7 +175,12 @@ def som2d(training_samples,
                   )
     #train and load sample for visualize
     model.train(training_samples)
-    model.load_visualize_samples(training_samples, test_samples)
+    visualize_samples = []
+    for sample in training_samples:
+        visualize_samples.append(sample)
+    for sample in test_samples:
+        visualize_samples.append(sample)
+    model.load_visualize_samples(visualize_samples)
     pdf_font = {'family' : 'monospace',
                 'size'   : 3}
     matplotlib.rc('font', **pdf_font)
@@ -207,7 +221,7 @@ def som2d(training_samples,
     plt_rows = fig_rows*fig_height + description_height
     plt_cols = (fig_width+legend_width) * fig_cols
     plt_txt_size = int(ceil(12/fig_rows))
-    desc_txt_size = 12 - fig_rows
+    desc_txt_size = 10 - fig_rows
     fig = plt.figure()
     eps_file_names = []
     idx = 0

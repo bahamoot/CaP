@@ -14,7 +14,7 @@ class Sample(CaPBase):
         CaPBase.__init__(self)
         self.__name = name
         self.features = None
-        self.classes = None
+        self.classes = {}
         self.content = None
         self.__term_coord = None
         self.__plt_coord = None
